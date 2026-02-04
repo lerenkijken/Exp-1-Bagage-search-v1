@@ -1,0 +1,347 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NVP 2025 demo by Andre Sahakian</title>
+    <!-- Get all the required libraries -->
+    <script src="https://unpkg.com/jspsych@8.2.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-button-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-slider-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-instructions@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
+    <link href="https://unpkg.com/jspsych@8.2.2/css/jspsych.css" rel="stylesheet" type="text/css" />  
+    <style> 
+        .jspsych-display-element {
+            font-size: 40px;
+        }
+        .jspsych-btn {
+            font-size: 40px;
+            border: 10px solid transparent;
+            border-radius: 16px;
+            color: #333;
+            background-color: #8ee86d8d;
+            border-color: #2f5920e9;
+            padding: 1px 60px;
+        }
+        .jspsych-slider::-webkit-slider-thumb {
+            border: 10px solid #2f5920e9;
+            height: 80px;
+            width: 80px;
+            border-radius: 40px;
+            background: #8ee86d8d;
+            margin-top: -20px;
+        }   
+        .jspsych-slider::-webkit-slider-runnable-track {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 60%;
+            height: 50px;
+            cursor: pointer;
+            background: #fff;
+            box-shadow: 0px 0px 0px #000000, 0px 0px 0px #0d0d0d;
+            border-radius: 2px;
+            border: 5px solid #aaa;
+        }     
+
+        #jspsych-progressbar-container {
+            color: #000000e9;
+            border-bottom: 5px solid #2f5920e9;
+            background-color: #ffffff;
+        }
+
+        #jspsych-progressbar-container span {
+            font-size: 25px;
+            padding-right: 25px;
+        }
+
+        #jspsych-progressbar-outer {
+            background-color: #8ee86d8d;
+        }
+
+        #jspsych-progressbar-inner {
+            background-color: #2f5920e9;
+        }
+    </style>  
+  </head>
+  <body></body>
+  <script>
+
+    //Initialize jsPsysch
+    const jsPsych = initJsPsych({
+        show_progress_bar: true,
+        message_progress_bar: 'Progress'
+
+    });
+
+
+    // subject id
+    const subject_id = jsPsych.randomization.randomID(10);
+    const filename = `${subject_id}.csv`;
+
+    jsPsych.data.addProperties({participantID: filename});
+
+
+    // trial parameters
+    const person_presentation_time = 1000
+    const grid_presentation_time = 1000
+
+    
+
+
+    // get stimuli
+    const stims = []
+    for (let i=0; i<31; i++){
+        stims.push('Picture'+i+'.png')
+
+    }
+
+    function make_grid_stim(i){
+      let min_size = Math.min( window.innerWidth/3, window.innerHeight/4)
+      let dim = min_size * 0.8
+
+      return `
+      <img src="${stims[i[0]]}" width="${dim}" height="${dim}" > <img src="${stims[i[1]]}"width="${dim}" height="${dim}">  <img src="${stims[i[2]]}" width="${dim}" height="${dim}"> <br>
+      <img src="${stims[i[3]]}" width="${dim}" height="${dim}" > <img src="${stims[i[4]]}"width="${dim}" height="${dim}">  <img src="${stims[i[5]]}" width="${dim}" height="${dim}"> <br>
+      <img src="${stims[i[6]]}" width="${dim}" height="${dim}" > <img src="${stims[i[7]]}"width="${dim}" height="${dim}">  <img src="${stims[i[8]]}" width="${dim}" height="${dim}"> <br>
+      <img src="${stims[i[9]]}" width="${dim}" height="${dim}" > <img src="${stims[i[10]]}"width="${dim}" height="${dim}">  <img src="${stims[i[11]]}" width="${dim}" height="${dim}"> <br>     
+      ` 
+
+    }
+
+
+
+
+
+    const preload = {
+        type: jsPsychPreload,
+        images: stims,
+    }
+
+    function make_trial_sequence(target_presence){
+
+        let all_indices = [...Array(31).keys()]
+
+        let target_index = jsPsych.randomization.randomInt(0, 30)
+
+        all_indices.splice(target_index, 1)
+
+        let all_but_target_indices = all_indices
+
+        let crowd_indices 
+        
+
+        if (target_presence){
+            crowd_indices = jsPsych.randomization.sampleWithoutReplacement(all_but_target_indices, 11) 
+            crowd_indices.push(target_index)
+            crowd_indices = jsPsych.randomization.shuffle(crowd_indices)
+        } else {
+            crowd_indices = jsPsych.randomization.sampleWithoutReplacement(all_but_target_indices, 12) 
+        }
+
+        // Make subtrials
+        const show_person_to_search = {
+            type: jsPsychImageKeyboardResponse,
+            stimulus: stims[target_index],
+            stimulus_width: function(){return Math.min( window.innerWidth/3, window.innerHeight/4) },
+            prompt: "<p>Find this person in the crowd.</p>",
+            choices: 'NO_KEYS',
+            trial_duration: person_presentation_time,
+            data:{
+                label:'show_person_to_search',
+                target: target_index,
+                target_presence: target_presence ? 'present' : 'absent',
+            }
+
+        };
+
+        const show_grid = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: make_grid_stim(crowd_indices),
+        choices: 'NO_KEYS',
+        trial_duration: grid_presentation_time,
+        save_trial_parameters:{stimulus:false},
+        post_trial_gap: 500,
+        data:{
+            label:'show_grid',
+            crowd: crowd_indices.toString()
+        }
+        };
+
+        const ask_presence = {
+            type: jsPsychImageButtonResponse,
+            stimulus:  stims[target_index],
+            stimulus_width: function(){return Math.min( window.innerWidth/3, window.innerHeight/4) },
+            prompt: "<p>Was this person there?</p>",
+            choices: ["<p>Yes</p>", "<p>No</p>"],
+            data:{
+                label:'ask_presence',
+                target_presence: target_presence,
+            },
+            on_finish: function(data){
+
+                if( data.response != Number(data.target_presence) ){ // this is reversed because a yes response gets resp 0
+                data.correct = 1;
+                } else {
+                data.correct = 0;
+                }
+            }
+        }
+
+        const ask_confidence = {
+            type: jsPsychImageSliderResponse,
+            stimulus: stims[target_index],
+            stimulus_width: function(){return Math.min( window.innerWidth/3, window.innerHeight/4) },
+            require_movement:true,
+            labels: ["<p>Not sure</p>", "<p>Very sure<p>"],
+            prompt: function(){
+                let response_data =  jsPsych.data.getLastTrialData().trials[0]
+                let prev_response = ['PRESENT', 'ABSENT'][response_data.response]
+                return "<p>You said this person was "+prev_response+"<br>How sure are you about that?</p>"
+            },
+            post_trial_gap: 750,
+            button_label: "<p>Continue</p>",    
+            data:{
+                label:'ask_confidence',
+            }
+        };
+
+        const one_trial_procedure = {
+            timeline: [show_person_to_search, show_grid, ask_presence, ask_confidence]
+        }
+
+        return one_trial_procedure
+    }
+
+    // build trial sequence:
+    const intro = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: "<h3>Welcome to this visual search demo-experiment!</h3>"+
+        "<p>There will be 12 trials.</p><p>In the end, you can choose to save your data on OSF.</p>",
+        choices: ["<p>Begin!</p>"],
+        data:{
+            label:'intro',
+        }
+    };
+    
+
+    const debrief = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: function(){
+            let n_trials =jsPsych.data.get().filter({label: 'ask_presence'}).count()
+            let n_correct = jsPsych.data.get().filter({label: 'ask_presence', correct:1}).count()
+            let p_confidence = jsPsych.data.get().filter({label: 'ask_confidence'}).select('response').mean()
+            return "<h3>You are done. Thanks!</h3>"+
+            `<p>You answered ${n_correct} of ${n_trials} questions correctly.</p>`+
+             `<p>You were about ${Math.round(p_confidence)}% sure of your answers.</p>`+
+            "<p>Tap below to save your data to OSF! Or close this window instead.</p>"
+        },
+        save_trial_parameters:{stimulus:false},
+        choices: ["<p>Save data!</p>"],
+        data:{
+            label:'debrief',
+        },
+        on_start: function(){
+            jsPsych.progressBar.progress = 1; // set progress bar to 100% full.
+        }
+    };
+    const outro = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: "<p>Your data was successfully saved!</p>"+
+        "<p>You may close this window now.</p>",
+        choices: 'NO_KEYS',
+        data:{
+            label:'outro',
+        },
+        on_start: function(){
+            jsPsych.progressBar.progress = 1; // set progress bar to 100% full.
+        }
+    };
+
+    const save_data = {
+        type: jsPsychPipe,
+        action: "save",
+        experiment_id: "ayWpeEMf2JK1",
+        filename: filename,
+        data_string: ()=>jsPsych.data.get().csv()
+    };
+    
+    let present_10_absent_2 = [
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+    ]
+
+    let present_2_absent_10 = [
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+    ]
+
+    let present_6_absent_6 = [
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(false),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+        make_trial_sequence(true),
+    ]
+
+    present_10_absent_2 = jsPsych.randomization.shuffle(present_10_absent_2)
+    present_2_absent_10 = jsPsych.randomization.shuffle(present_2_absent_10)
+    present_6_absent_6  = jsPsych.randomization.shuffle(present_6_absent_6 )
+
+    // Put the trials on a 'timeline' in the right order
+    const timeline_0 = [preload, intro, ...present_10_absent_2, debrief, save_data, outro]
+    const timeline_1 = [preload, intro, ...present_2_absent_10, debrief, save_data, outro]
+    const timeline_2 = [preload, intro, ...present_6_absent_6, debrief, save_data, outro]
+
+    // piloting from 
+    // const timeline_0 = [preload, intro, make_trial_sequence(false),make_trial_sequence(true), debrief, save_data, outro]
+    // const timeline_1 = [preload, intro, make_trial_sequence(false),make_trial_sequence(true), debrief, save_data, outro]
+    // const timeline_2 = [preload, intro, make_trial_sequence(false),make_trial_sequence(true), debrief, save_data, outro]
+
+
+    async function createExperiment(){
+    const condition = await jsPsychPipe.getCondition("ayWpeEMf2JK1");
+
+    if(condition == 0) { timeline = timeline_0; }
+    if(condition == 1) { timeline = timeline_1; }
+    if(condition == 2) { timeline = timeline_2; }
+    jsPsych.run(timeline);
+    }
+    createExperiment();
+                  
+
+  </script>
+</html>
+
+
+

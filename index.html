@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Exp 1 - Bagage search</title>
+    <!-- Get all the required libraries -->
+    <script src="https://unpkg.com/jspsych@8.2.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-button-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-slider-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-instructions@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
+    <link href="https://unpkg.com/jspsych@8.2.2/css/jspsych.css" rel="stylesheet" type="text/css" />  
+    <style> 
+        .jspsych-display-element {
+            font-size: 40px;
+        }
+        .jspsych-btn {
+            font-size: 40px;
+            border: 10px solid transparent;
+            border-radius: 16px;
+            color: #333;
+            background-color: #8ee86d8d;
+            border-color: #2f5920e9;
+            padding: 1px 60px;
+        }
+        .jspsych-slider::-webkit-slider-thumb {
+            border: 10px solid #2f5920e9;
+            height: 80px;
+            width: 80px;
+            border-radius: 40px;
+            background: #8ee86d8d;
+            margin-top: -20px;
+        }   
+        .jspsych-slider::-webkit-slider-runnable-track {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 60%;
+            height: 50px;
+            cursor: pointer;
+            background: #fff;
+            box-shadow: 0px 0px 0px #000000, 0px 0px 0px #0d0d0d;
+            border-radius: 2px;
+            border: 5px solid #aaa;
+        }     
+
+        #jspsych-progressbar-container {
+            color: #000000e9;
+            border-bottom: 5px solid #2f5920e9;
+            background-color: #ffffff;
+        }
+
+        #jspsych-progressbar-container span {
+            font-size: 25px;
+            padding-right: 25px;
+        }
+
+        #jspsych-progressbar-outer {
+            background-color: #8ee86d8d;
+        }
+
+        #jspsych-progressbar-inner {
+            background-color: #2f5920e9;
+        }
+    </style>  
+  </head>
+  <body></body>
+  <script>
+
+    //Initialize jsPsysch
+    const jsPsych = initJsPsych({
+        show_progress_bar: true,
+        message_progress_bar: 'Progress',
+        on_finish: function() {
+            jsPsych.data.displayData('json');
+        }
+
+    });
+
+
+    // participant & exp info
+    // later use this: "let urlvars = jsPsych.data.urlVariables()" "
+    let urlvars = {
+        uid: jsPsych.randomization.randomID(10),
+        token: jsPsych.randomization.randomID(15),
+        exp_id:'Exp-1-bagage'
+    } 
+
+
+    jsPsych.data.addProperties({
+        uid: urlvars.uid,
+        token: urlvars.token,
+        exp_id: urlvars.exp_id,
+    });
+
+    // trial parameters
+    const person_presentation_time = 1000
+    const grid_presentation_time = 5000
+   
+    const stims = [
+    'doodle icons/PNG/food/burger.png',
+    'doodle icons/PNG/food/cake.png',
+    'doodle icons/PNG/food/candy.png',
+    'doodle icons/PNG/food/cutlery.png',
+    'doodle icons/PNG/food/dish.png',
+    'doodle icons/PNG/food/drink.png',
+    'doodle icons/PNG/food/egg.png',
+    'doodle icons/PNG/food/fork.png',
+    'doodle icons/PNG/food/ice-cream.png',
+    'doodle icons/PNG/food/pizza-2.png',
+    'doodle icons/PNG/food/pizza.png',
+    'doodle icons/PNG/food/popsicle.png',
+    'doodle icons/PNG/food/spoon.png',
+    'doodle icons/PNG/food/water.png',
+    ]
+    
+    const preload = {
+        type: jsPsychPreload,
+        images: stims,
+    }
+
+
+    function make_grid_stim(i){
+      let min_size = Math.min( window.innerWidth/3, window.innerHeight/4)
+      let dim = min_size * 0.8
+
+      return `
+      <img src="${stims[i[0]]}" height="${dim}" > <img src="${stims[i[1]]}"height="${dim}">  <img src="${stims[i[2]]}" height="${dim}"> <br>
+      <img src="${stims[i[3]]}" height="${dim}" > <img src="${stims[i[4]]}"height="${dim}">  <img src="${stims[i[5]]}" height="${dim}"> <br>     
+      ` 
+
+    }
+    // build trial sequence:
+    const intro = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: "<h3>Welkom! </h3>"+
+        "</p>",
+        choices: ["<p>Begin!</p>"],
+        data:{
+            label:'intro',
+        }
+    };
+
+    let all_indices = [...Array(13).keys()]
+    let crowd_indices = jsPsych.randomization.sampleWithoutReplacement(all_indices, 6)
+
+    const show_grid = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: make_grid_stim(crowd_indices),
+    choices: ['F', 'J'],
+    save_trial_parameters:{stimulus:false},
+    post_trial_gap: 500,
+    };    
+    
+
+    let timeline = [preload, intro, show_grid]
+
+    // // Put the trials on a 'timeline' in the right order
+    // const timeline_0 = [preload, intro, ... , save_data, outro]
+    // const timeline_1 = [preload, intro, ... , save_data, outro]
+    // const timeline_2 = [preload, intro, ... , save_data, outro]
+
+
+    // async function createExperiment(){
+    // const condition = await jsPsychPipe.getCondition(" ");
+
+    // if(condition == 0) { timeline = timeline_0; }
+    // if(condition == 1) { timeline = timeline_1; }
+    // if(condition == 2) { timeline = timeline_2; }
+
+    // jsPsych.run(timeline);
+    // }
+    // createExperiment();
+    
+    jsPsych.run(timeline);   
+
+  </script>
+</html>
+
+
+
