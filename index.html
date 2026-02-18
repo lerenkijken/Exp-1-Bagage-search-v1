@@ -13,67 +13,19 @@
     <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.1.0"></script>
     <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.1.0"></script>
     <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
+        <script src="https://unpkg.com/@jspsych/plugin-canvas-keyboard-response@1.1.3"></script>
+    
+    <script src="fabric.js"></script> 
     <link href="https://unpkg.com/jspsych@8.2.2/css/jspsych.css" rel="stylesheet" type="text/css" />  
-    <style> 
-        .jspsych-display-element {
-            font-size: 40px;
-        }
-        .jspsych-btn {
-            font-size: 40px;
-            border: 10px solid transparent;
-            border-radius: 16px;
-            color: #333;
-            background-color: #8ee86d8d;
-            border-color: #2f5920e9;
-            padding: 1px 60px;
-        }
-        .jspsych-slider::-webkit-slider-thumb {
-            border: 10px solid #2f5920e9;
-            height: 80px;
-            width: 80px;
-            border-radius: 40px;
-            background: #8ee86d8d;
-            margin-top: -20px;
-        }   
-        .jspsych-slider::-webkit-slider-runnable-track {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 60%;
-            height: 50px;
-            cursor: pointer;
-            background: #fff;
-            box-shadow: 0px 0px 0px #000000, 0px 0px 0px #0d0d0d;
-            border-radius: 2px;
-            border: 5px solid #aaa;
-        }     
-
-        #jspsych-progressbar-container {
-            color: #000000e9;
-            border-bottom: 5px solid #2f5920e9;
-            background-color: #ffffff;
-        }
-
-        #jspsych-progressbar-container span {
-            font-size: 25px;
-            padding-right: 25px;
-        }
-
-        #jspsych-progressbar-outer {
-            background-color: #8ee86d8d;
-        }
-
-        #jspsych-progressbar-inner {
-            background-color: #2f5920e9;
-        }
-    </style>  
+    
   </head>
   <body></body>
   <script>
 
     //Initialize jsPsysch
     const jsPsych = initJsPsych({
-        show_progress_bar: true,
-        message_progress_bar: 'Progress',
+        // show_progress_bar: true,
+        // message_progress_bar: 'Progress',
         on_finish: function() {
             jsPsych.data.displayData('json');
         }
@@ -99,6 +51,11 @@
     // trial parameters
     const person_presentation_time = 1000
     const grid_presentation_time = 5000
+    const canvas_w = 500
+    const canvas_h = 500
+    const obj_scale = 0.6 // makes objects around 100 pix in size
+    const canvas_size = [canvas_w,canvas_h]
+    const n_objects = 6
    
     const stims = [
     'doodle icons/PNG/food/burger.png',
@@ -116,23 +73,71 @@
     'doodle icons/PNG/food/spoon.png',
     'doodle icons/PNG/food/water.png',
     ]
-    
+
+    // make fabric objects of the stimuli
+    let fabric_imgs = []
+    stims.forEach(img_src => {
+        let Img = new Image();
+        Img.src = img_src;
+
+        let fabric_img = new fabric.Image(Img, {selectable:false, hoverCursor:'auto'})//
+        fabric_imgs.push(fabric_img)
+    });
+
+
     const preload = {
         type: jsPsychPreload,
         images: stims,
     }
 
 
-    function make_grid_stim(i){
-      let min_size = Math.min( window.innerWidth/3, window.innerHeight/4)
-      let dim = min_size * 0.8
+function make_trial() {
 
-      return `
-      <img src="${stims[i[0]]}" height="${dim}" > <img src="${stims[i[1]]}"height="${dim}">  <img src="${stims[i[2]]}" height="${dim}"> <br>
-      <img src="${stims[i[3]]}" height="${dim}" > <img src="${stims[i[4]]}"height="${dim}">  <img src="${stims[i[5]]}" height="${dim}"> <br>     
-      ` 
 
+      let fabric_trial = {
+        type: jsPsychCanvasKeyboardResponse,
+        canvas_size: canvas_size,
+        trial_duration: null,
+        stimulus: function (c) {
+
+            fabric_imgs = jsPsych.randomization.shuffleNoRepeats(fabric_imgs)
+            
+            // initialize canvas and timestamp
+            timestamp=performance.now()
+            let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'cyan', selection:false});
+            canvas.on('mouse:down', function(options) {
+                    console.log(options.e.layerX, options.e.layerY);
+                    circle = new fabric.Circle({
+                        radius: 10, fill: 'red', left: options.e.layerX-10, top: options.e.layerY-10, selectable:false, hoverCursor:'auto'
+                        });
+                    canvas.add(circle)
+                });
+                
+    
+        
+            // add a bunch of objects in  the briefcase 
+            for (let i=0; i<stims.length; i++){
+            let obj = fabric_imgs[i]
+            obj.scaleX = obj_scale
+            obj.scaleY = obj_scale
+
+            obj.left = Math.random()*(canvas_w - obj.width*obj_scale)
+            obj.top = Math.random()*(canvas_h - obj.height*obj_scale)
+            canvas.add(obj)
+            }  
+            canvas.renderAll()
+          
+        },      
+        choices: 'ALL_KEYS',
+
+        on_finish:(data) => { 
+
+        }
+      } 
+
+      return fabric_trial
     }
+
     // build trial sequence:
     const intro = {
         type: jsPsychHtmlButtonResponse,
@@ -146,34 +151,12 @@
 
     let all_indices = [...Array(13).keys()]
     let crowd_indices = jsPsych.randomization.sampleWithoutReplacement(all_indices, 6)
-
-    const show_grid = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: make_grid_stim(crowd_indices),
-    choices: ['F', 'J'],
-    save_trial_parameters:{stimulus:false},
-    post_trial_gap: 500,
-    };    
+   
     
 
-    let timeline = [preload, intro, show_grid]
-
-    // // Put the trials on a 'timeline' in the right order
-    // const timeline_0 = [preload, intro, ... , save_data, outro]
-    // const timeline_1 = [preload, intro, ... , save_data, outro]
-    // const timeline_2 = [preload, intro, ... , save_data, outro]
+    let timeline = [preload, make_trial()]
 
 
-    // async function createExperiment(){
-    // const condition = await jsPsychPipe.getCondition(" ");
-
-    // if(condition == 0) { timeline = timeline_0; }
-    // if(condition == 1) { timeline = timeline_1; }
-    // if(condition == 2) { timeline = timeline_2; }
-
-    // jsPsych.run(timeline);
-    // }
-    // createExperiment();
     
     jsPsych.run(timeline);   
 
