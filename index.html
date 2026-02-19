@@ -87,7 +87,7 @@
                 Img.src = img_src;
                 
                 let img_label = img_src.split('/')[img_src.split('/').length - 1] // get label
-                let fabric_img = new fabric.Image(Img, {selectable:false, hoverCursor:'auto', originX: 'center', originY: 'center', img_label:img_label})//
+                let fabric_img = new fabric.Image(Img, {selectable:false, hoverCursor:'auto', originX: 'center', originY: 'center', opacity:0.5, img_label:img_label})//
                 fabric_imgs.push(fabric_img)
             });
             done()
@@ -102,7 +102,7 @@
 
 
     function make_trial() {
-        let loc_indicator 
+        let loc_indicator, t_obj 
         let object_info = {}
 
         let fabric_trial = {
@@ -112,21 +112,26 @@
             stimulus: function (c) {
 
                 fabric_imgs = jsPsych.randomization.shuffleNoRepeats(fabric_imgs)
-                let bg_col = fabric.isTouchSupported ? 'green' : 'red'
+                
                 // initialize canvas and timestamp
                 timestamp=performance.now()
-                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:bg_col, selection:false});
+                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'cyan', selection:false});
                 loc_indicator = new fabric.Circle({
                             radius: 20, fill: 'red', selectable:false, hoverCursor:'auto', left:-9999, top:-9999, opacity:0.7, originX: 'center', originY: 'center'
                             });
                 canvas.on('mouse:down', function(options) {
                         // remove previous 
-                        canvas.remove(loc_indicator)
+                        canvas.remove(loc_indicator, t_obj)
                         // update loc and add it back to the canvas
                         loc_indicator.set({left: options.e.layerX, top: options.e.layerY}),
                         canvas.add(loc_indicator)
-                        console.log('mouse:down function triggered')
-
+                                            
+                        let t_str = "layerX: " + options.e.layerX + "\n"+
+                                    "layerY: " + options.e.layerY + "\n"+
+                                    "clientX: " + options.e.clientX + "\n"+
+                                    "clientY: " + options.e.clientY 
+                        t_obj = new fabric.Text( t_str ,{ fontSize: 25 , top:10,left:10  });
+                        canvas.add(t_obj)
                         //end trial 
                         // jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 700 )                    
                 });
@@ -138,6 +143,8 @@
                         // update loc and add it back to the canvas
                         loc_indicator.set({left: options.e.layerX, top: options.e.layerY}),
                         canvas.add(loc_indicator)
+                        let t_str = "I'm at fontSize 40"
+                        let t1 = new fabric.Text( t_str, { fontSize: 40   });
                         console.log('touchstart function triggered')
                         //end trial 
                         // jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )                    
@@ -177,7 +184,7 @@
     // build trial sequence:
     const intro = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: "<h1>Welkom! -v1 </h1>",
+        stimulus: "<h1>Welkom! - v2 text coords </h1>",
         choices: ["<h2>Begin!</h2>"],
         data:{
             label:'intro',
