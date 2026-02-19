@@ -122,11 +122,23 @@
                 canvas.on('mouse:down', function(options) {
                         // remove previous 
                         canvas.remove(loc_indicator, t_obj)
+
                         // update loc and add it back to the canvas
-                        loc_indicator.set({left: options.e.layerX, top: options.e.layerY}),
+                        let report_x, report_y;
+                        if (''+options.e == '[object MouseEvent]') { // 
+                            report_x = options.e.layerX
+                            report_y = options.e.layerY
+                        } else if (''+options.e == '[object TouchEvent]'){
+                            let touch = options.e.touches.item(0)
+                            report_x = touch.clientX 
+                            report_y = touch.clientX
+                        }
+
+                        loc_indicator.set({left:report_x, top: report_y}),
                         canvas.add(loc_indicator)
                                             
-                        let t_str = "layerX: " + options.e //+ "\n"+
+                        let t_str = "report_x: " +report_x + "\n"+
+                                    "report_y: " +report_y// + "\n"+
                                     // "layerY: " + options.e.layerY + "\n"+
                                     // "clientX: " + options.e.clientX + "\n"+
                                     // "clientY: " + options.e.clientY 
