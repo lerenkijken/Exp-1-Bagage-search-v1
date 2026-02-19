@@ -112,10 +112,10 @@
             stimulus: function (c) {
 
                 fabric_imgs = jsPsych.randomization.shuffleNoRepeats(fabric_imgs)
-                
+                let bg_col = fabric.isTouchSupported ? 'green' : 'red'
                 // initialize canvas and timestamp
                 timestamp=performance.now()
-                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'cyan', selection:false});
+                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:bg_col, selection:false});
                 loc_indicator = new fabric.Circle({
                             radius: 20, fill: 'red', selectable:false, hoverCursor:'auto', left:-9999, top:-9999, opacity:0.7, originX: 'center', originY: 'center'
                             });
