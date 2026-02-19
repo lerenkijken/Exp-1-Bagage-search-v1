@@ -128,7 +128,7 @@
                         console.log('mouse:down function triggered')
 
                         //end trial 
-                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 700 )                    
+                        // jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 700 )                    
                 });
                 
                     
@@ -140,7 +140,7 @@
                         canvas.add(loc_indicator)
                         console.log('touchstart function triggered')
                         //end trial 
-                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )                    
+                        // jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )                    
                 });
 
                 // add a bunch of objects in  the briefcase 
@@ -162,7 +162,7 @@
                 canvas.renderAll()
                 
             },      
-            choices: 'NO_KEYS',
+            choices: ['q'],
 
             on_finish:(data) => { 
                 data.reported_loc_on_canvas = {x:loc_indicator.left, y:loc_indicator.top}
@@ -177,9 +177,8 @@
     // build trial sequence:
     const intro = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: "<h3>Welkom! </h3>"+
-        "</p>",
-        choices: ["<p>Begin!</p>"],
+        stimulus: "<h1>Welkom! -v1 </h1>",
+        choices: ["<h2>Begin!</h2>"],
         data:{
             label:'intro',
         }
