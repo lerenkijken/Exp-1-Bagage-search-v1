@@ -116,6 +116,9 @@
                 // initialize canvas and timestamp
                 timestamp=performance.now()
                 let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'cyan', selection:false});
+                let canvas_el = document.getElementById("jspsych-canvas-stimulus");
+                let canvas_rect = canvas_el.getBoundingClientRect();
+
                 loc_indicator = new fabric.Circle({
                             radius: 20, fill: 'red', selectable:false, hoverCursor:'auto', left:-9999, top:-9999, opacity:0.7, originX: 'center', originY: 'center'
                             });
@@ -130,8 +133,8 @@
                             report_y = options.e.layerY
                         } else if (''+options.e == '[object TouchEvent]'){
                             let touch = options.e.touches.item(0)
-                            report_x = touch.clientX 
-                            report_y = touch.clientX
+                            report_x = touch.clientX - canvas_rect.x
+                            report_y = touch.clientY - canvas_rect.y
                         }
 
                         loc_indicator.set({left:report_x, top: report_y}),
