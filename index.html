@@ -13,9 +13,11 @@
     <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.1.0"></script>
     <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.1.0"></script>
     <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
-        <script src="https://unpkg.com/@jspsych/plugin-canvas-keyboard-response@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-call-function@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-canvas-keyboard-response@1.1.3"></script>
     
     <script src="fabric.js"></script> 
+    <!-- https://fabric5.fabricjs.com/fabric-intro-part-1#objects  -->
     <link href="https://unpkg.com/jspsych@8.2.2/css/jspsych.css" rel="stylesheet" type="text/css" />  
     
   </head>
@@ -53,36 +55,44 @@
     const grid_presentation_time = 5000
     const canvas_w = 500
     const canvas_h = 500
-    const obj_scale = 0.6 // makes objects around 100 pix in size
+    const obj_scale = 0.6// makes objects around 100 pix in size
     const canvas_size = [canvas_w,canvas_h]
     const n_objects = 6
    
     const stims = [
-    'doodle icons/PNG/food/burger.png',
-    'doodle icons/PNG/food/cake.png',
-    'doodle icons/PNG/food/candy.png',
-    'doodle icons/PNG/food/cutlery.png',
-    'doodle icons/PNG/food/dish.png',
-    'doodle icons/PNG/food/drink.png',
-    'doodle icons/PNG/food/egg.png',
-    'doodle icons/PNG/food/fork.png',
-    'doodle icons/PNG/food/ice-cream.png',
-    'doodle icons/PNG/food/pizza-2.png',
-    'doodle icons/PNG/food/pizza.png',
-    'doodle icons/PNG/food/popsicle.png',
-    'doodle icons/PNG/food/spoon.png',
-    'doodle icons/PNG/food/water.png',
+        'doodle icons/PNG/food/burger.png',
+        'doodle icons/PNG/food/cake.png',
+        'doodle icons/PNG/food/candy.png',
+        'doodle icons/PNG/food/cutlery.png',
+        'doodle icons/PNG/food/dish.png',
+        'doodle icons/PNG/food/drink.png',
+        'doodle icons/PNG/food/egg.png',
+        'doodle icons/PNG/food/fork.png',
+        'doodle icons/PNG/food/ice-cream.png',
+        'doodle icons/PNG/food/pizza-2.png',
+        'doodle icons/PNG/food/pizza.png',
+        'doodle icons/PNG/food/popsicle.png',
+        'doodle icons/PNG/food/spoon.png',
+        'doodle icons/PNG/food/water.png',
     ]
 
     // make fabric objects of the stimuli
     let fabric_imgs = []
-    stims.forEach(img_src => {
-        let Img = new Image();
-        Img.src = img_src;
-
-        let fabric_img = new fabric.Image(Img, {selectable:false, hoverCursor:'auto'})//
-        fabric_imgs.push(fabric_img)
-    });
+    const fabric_preload = {
+        type: jsPsychCallFunction,
+        async: true,
+        func: function(done){
+            stims.forEach(img_src => {
+                let Img = new Image();
+                Img.src = img_src;
+                
+                let img_label = img_src.split('/')[img_src.split('/').length - 1] // get label
+                let fabric_img = new fabric.Image(Img, {selectable:false, hoverCursor:'auto', originX: 'center', originY: 'center', img_label:img_label})//
+                fabric_imgs.push(fabric_img)
+            });
+            done()
+        }
+    };
 
 
     const preload = {
@@ -91,52 +101,67 @@
     }
 
 
-function make_trial() {
+    function make_trial() {
+        let loc_indicator 
+        let object_info = {}
 
+        let fabric_trial = {
+            type: jsPsychCanvasKeyboardResponse,
+            canvas_size: canvas_size,
+            trial_duration: null,
+            stimulus: function (c) {
 
-      let fabric_trial = {
-        type: jsPsychCanvasKeyboardResponse,
-        canvas_size: canvas_size,
-        trial_duration: null,
-        stimulus: function (c) {
-
-            fabric_imgs = jsPsych.randomization.shuffleNoRepeats(fabric_imgs)
-            
-            // initialize canvas and timestamp
-            timestamp=performance.now()
-            let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'cyan', selection:false});
-            canvas.on('mouse:down', function(options) {
-                    console.log(options.e.layerX, options.e.layerY);
-                    circle = new fabric.Circle({
-                        radius: 10, fill: 'red', left: options.e.layerX-10, top: options.e.layerY-10, selectable:false, hoverCursor:'auto'
-                        });
-                    canvas.add(circle)
-                });
+                fabric_imgs = jsPsych.randomization.shuffleNoRepeats(fabric_imgs)
                 
-    
-        
-            // add a bunch of objects in  the briefcase 
-            for (let i=0; i<stims.length; i++){
-            let obj = fabric_imgs[i]
-            obj.scaleX = obj_scale
-            obj.scaleY = obj_scale
+                // initialize canvas and timestamp
+                timestamp=performance.now()
+                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'cyan', selection:false});
+                loc_indicator = new fabric.Circle({
+                            radius: 20, fill: 'red', selectable:false, hoverCursor:'auto', left:-9999, top:-9999, opacity:0.7, originX: 'center', originY: 'center'
+                            });
+                canvas.on('mouse:down', function(options) {
+                        // remove previous 
+                        canvas.remove(loc_indicator)
+                        // update loc and add it back to the canvas
+                        loc_indicator.set({left: options.e.layerX, top: options.e.layerY}),
+                        canvas.add(loc_indicator)
 
-            obj.left = Math.random()*(canvas_w - obj.width*obj_scale)
-            obj.top = Math.random()*(canvas_h - obj.height*obj_scale)
-            canvas.add(obj)
-            }  
-            canvas.renderAll()
-          
-        },      
-        choices: 'ALL_KEYS',
+                        //end trial 
+                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )                    
+                });
+                    
 
-        on_finish:(data) => { 
 
+                // add a bunch of objects in  the briefcase 
+                for (let i=0; i < fabric_imgs.length; i++){ 
+                    let obj = fabric_imgs[i]
+                    obj.scaleX = obj_scale
+                    obj.scaleY = obj_scale
+                    obj.angle = Math.round(Math.random()*360)
+
+                    let max_rad = (obj.width**2 + obj.height**2)**0.5  * obj_scale
+
+                    obj.left = Math.round(Math.random()*(canvas_w - max_rad) + max_rad*0.5)
+                    obj.top  = Math.round(Math.random()*(canvas_h - max_rad) + max_rad*0.5)
+                    canvas.add(obj) 
+
+                    object_info[obj.img_label] = {x:obj.left, y:obj.top, angle:obj.angle}
+                }  
+
+                canvas.renderAll()
+                
+            },      
+            choices: 'ALL_KEYS',
+
+            on_finish:(data) => { 
+                data.reported_loc_on_canvas = {x:loc_indicator.left, y:loc_indicator.top}
+                data.object_info = object_info
+                jsPsych.pluginAPI.clearAllTimeouts()
+            }
+        } 
+
+        return fabric_trial
         }
-      } 
-
-      return fabric_trial
-    }
 
     // build trial sequence:
     const intro = {
@@ -154,7 +179,7 @@ function make_trial() {
    
     
 
-    let timeline = [preload, make_trial()]
+    let timeline = [preload, fabric_preload, intro, make_trial(), make_trial(), make_trial(), make_trial(), intro]
 
 
     
