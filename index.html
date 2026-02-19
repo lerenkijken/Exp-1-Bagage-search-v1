@@ -128,7 +128,7 @@
                         console.log('mouse:down function triggered')
 
                         //end trial 
-                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )                    
+                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 700 )                    
                 });
                 
                     
@@ -162,7 +162,7 @@
                 canvas.renderAll()
                 
             },      
-            choices: 'ALL_KEYS',
+            choices: 'NO_KEYS',
 
             on_finish:(data) => { 
                 data.reported_loc_on_canvas = {x:loc_indicator.left, y:loc_indicator.top}
