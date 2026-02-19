@@ -126,10 +126,10 @@
                         loc_indicator.set({left: options.e.layerX, top: options.e.layerY}),
                         canvas.add(loc_indicator)
                                             
-                        let t_str = "layerX: " + options.e.layerX + "\n"+
-                                    "layerY: " + options.e.layerY + "\n"+
-                                    "clientX: " + options.e.clientX + "\n"+
-                                    "clientY: " + options.e.clientY 
+                        let t_str = "layerX: " + options.e //+ "\n"+
+                                    // "layerY: " + options.e.layerY + "\n"+
+                                    // "clientX: " + options.e.clientX + "\n"+
+                                    // "clientY: " + options.e.clientY 
                         t_obj = new fabric.Text( t_str ,{ fontSize: 25 , top:10,left:10  });
                         canvas.add(t_obj)
                         //end trial 
@@ -184,7 +184,7 @@
     // build trial sequence:
     const intro = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: "<h1>Welkom! - v2 text coords </h1>",
+        stimulus: "<h1>Welkom! - v3 check event </h1>",
         choices: ["<h2>Begin!</h2>"],
         data:{
             label:'intro',
