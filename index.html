@@ -125,12 +125,23 @@
                         // update loc and add it back to the canvas
                         loc_indicator.set({left: options.e.layerX, top: options.e.layerY}),
                         canvas.add(loc_indicator)
+                        console.log('mouse:down function triggered')
 
                         //end trial 
                         jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )                    
                 });
+                
                     
-
+                canvas.on('touchstart', function(options) {
+                        // remove previous 
+                        canvas.remove(loc_indicator)
+                        // update loc and add it back to the canvas
+                        loc_indicator.set({left: options.e.layerX, top: options.e.layerY}),
+                        canvas.add(loc_indicator)
+                        console.log('touchstart function triggered')
+                        //end trial 
+                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )                    
+                });
 
                 // add a bunch of objects in  the briefcase 
                 for (let i=0; i < fabric_imgs.length; i++){ 
