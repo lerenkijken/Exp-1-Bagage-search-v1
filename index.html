@@ -55,53 +55,120 @@
     const grid_presentation_time = 5000
     const canvas_w = 500
     const canvas_h = 500
-    const obj_scale = 0.6// makes objects around 100 pix in size
+    const obj_canvas_ratio = 0.1 // makes objects 5 x smaller than canvas
     const canvas_size = [canvas_w,canvas_h]
-    const n_objects = 6
+    let n_objects =2
    
-    const stims = [
-        'doodle icons/PNG/food/burger.png',
-        'doodle icons/PNG/food/cake.png',
-        'doodle icons/PNG/food/candy.png',
-        'doodle icons/PNG/food/cutlery.png',
-        'doodle icons/PNG/food/dish.png',
-        'doodle icons/PNG/food/drink.png',
-        'doodle icons/PNG/food/egg.png',
-        'doodle icons/PNG/food/fork.png',
-        'doodle icons/PNG/food/ice-cream.png',
-        'doodle icons/PNG/food/pizza-2.png',
-        'doodle icons/PNG/food/pizza.png',
-        'doodle icons/PNG/food/popsicle.png',
-        'doodle icons/PNG/food/spoon.png',
-        'doodle icons/PNG/food/water.png',
+    const non_target_item_paths = [
+        "doodle icons/icons/bag-2.svg",
+        "doodle icons/icons/apple.svg",
+        "doodle icons/icons/balloon.svg",
+        "doodle icons/icons/bell.svg",
+        "doodle icons/icons/blood-bag.svg",
+        "doodle icons/icons/blood.svg",
+        "doodle icons/icons/bottle.svg",
+        "doodle icons/icons/bug.svg",
+        "doodle icons/icons/bulb.svg",
+        "doodle icons/icons/burger.svg",
+        "doodle icons/icons/cake.svg",
+        "doodle icons/icons/calendar.svg",
+        "doodle icons/icons/call.svg",
+        "doodle icons/icons/candy.svg",
+        "doodle icons/icons/card-2.svg",
+        "doodle icons/icons/card.svg",
+        "doodle icons/icons/clock.svg",
+        "doodle icons/icons/coffee-cup-2.svg",
+        "doodle icons/icons/coin-2.svg",
+        "doodle icons/icons/coin.svg",
+        "doodle icons/icons/cookie.svg",
+        "doodle icons/icons/cut.svg",
+        "doodle icons/icons/delete.svg",
+        "doodle icons/icons/diamond.svg",
+        "doodle icons/icons/doc.svg",
+        "doodle icons/icons/dollar.svg",
+        "doodle icons/icons/dropbox.svg",
+        "doodle icons/icons/dropper.svg",
+        "doodle icons/icons/euro.svg",
+        "doodle icons/icons/file-contract.svg",
+        "doodle icons/icons/file-form.svg",
+        "doodle icons/icons/file-image.svg",
+        "doodle icons/icons/first-aid.svg",
+        "doodle icons/icons/firstaid-2.svg",
+        "doodle icons/icons/flashlight.svg",
+        "doodle icons/icons/flask-round.svg",
+        "doodle icons/icons/flask.svg",
+        "doodle icons/icons/frame.svg",
+        "doodle icons/icons/gift.svg",
+        "doodle icons/icons/guitar.svg",
+        "doodle icons/icons/headphone.svg",
+        "doodle icons/icons/heart-beat.svg",
+        "doodle icons/icons/heart.svg",
+        "doodle icons/icons/ice-cream.svg",
+        "doodle icons/icons/injection.svg",
+        "doodle icons/icons/key.svg",
+        "doodle icons/icons/lock.svg",
+        "doodle icons/icons/lungs.svg",
+        "doodle icons/icons/mail.svg",
+        "doodle icons/icons/medical-logo.svg",
+        "doodle icons/icons/megaphone.svg",
+        "doodle icons/icons/microscope.svg",
+        "doodle icons/icons/paint-brush-2.svg",
+        "doodle icons/icons/paint-brush.svg",
+        "doodle icons/icons/paper-clip.svg",
+        "doodle icons/icons/pen.svg",
+        "doodle icons/icons/pencil-2.svg",
+        "doodle icons/icons/phone.svg",
+        "doodle icons/icons/piggy-bank.svg",
+        "doodle icons/icons/pills.svg",
+        "doodle icons/icons/pizza-2.svg",
+        "doodle icons/icons/popsicle.svg",
+        "doodle icons/icons/scan.svg",
+        "doodle icons/icons/search.svg",
+        "doodle icons/icons/spoon.svg",
+        "doodle icons/icons/stethoscope.svg",
+        "doodle icons/icons/stopwatch.svg",
+        "doodle icons/icons/tablet.svg",
+        "doodle icons/icons/test-tube.svg",
+        "doodle icons/icons/tooth.svg",
+        "doodle icons/icons/trophy.svg",
+        "doodle icons/icons/wallet.svg",
+        "doodle icons/icons/wheelchair.svg",       
     ]
+    const target_item_paths = [
+        "doodle icons/icons/knife.svg",
+        "doodle icons/icons/gun.svg",
+        
+    ] 
 
     // make fabric objects of the stimuli
-    let fabric_imgs = []
-    const fabric_preload = {
-        type: jsPsychCallFunction,
-        async: true,
-        func: function(done){
-            stims.forEach(img_src => {
-                let Img = new Image();
-                Img.src = img_src;
-                
-                let img_label = img_src.split('/')[img_src.split('/').length - 1] // get label
-                let fabric_img = new fabric.Image(Img, {selectable:false, hoverCursor:'auto', originX: 'center', originY: 'center', opacity:0.5, img_label:img_label})//
-                fabric_imgs.push(fabric_img)
-            });
-            done()
-        }
+    let non_target_items = []
+    let target_items = []
+
+    for (let img_src of [...non_target_item_paths, ...target_item_paths]) { 
+        let img_label = img_src.split('/')[img_src.split('/').length - 1] // get label
+
+        let fabric_obj_attributes = {selectable:false, hoverCursor:'auto', originX: 'center', originY: 'center', opacity:1, img_label:img_label}
+        let svg_obj_group = [];
+        
+        fabric.loadSVGFromURL(img_src, function(objects, options) {
+            let loadedObjects = new fabric.Group(svg_obj_group);
+            loadedObjects.set(fabric_obj_attributes);
+
+            // put group in right array
+            if ( target_item_paths.includes(img_src) ) {
+                target_items.push(loadedObjects)
+            } else {
+                non_target_items.push(loadedObjects)
+            }
+            
+
+
+        }, function(item, object) {
+                svg_obj_group.push(object);
+        });
     };
 
-
-    const preload = {
-        type: jsPsychPreload,
-        images: stims,
-    }
-
-
-    function make_trial() {
+    function make_trial(n_targets) {
         let loc_indicator
         let object_info = {}
 
@@ -110,23 +177,32 @@
             canvas_size: canvas_size,
             trial_duration: null,
             stimulus: function (c) {
-
-                fabric_imgs = jsPsych.randomization.shuffleNoRepeats(fabric_imgs)
                 
+                // select targets and nontargets 
+                let selected_non_targets = jsPsych.randomization.sampleWithoutReplacement(non_target_items, n_objects-n_targets)
+                let selected_targets = jsPsych.randomization.sampleWithoutReplacement(target_items, n_targets)
+
+                
+                let shuffled_selection = jsPsych.randomization.shuffle([...selected_non_targets, ...selected_targets])
+                console.log(shuffled_selection)
                 // initialize canvas and timestamp
-                timestamp=performance.now()
-                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'cyan', selection:false});
+                timestamp = performance.now()
+                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'white', selection:false, centeredScaling:true});
                 let canvas_el = document.getElementById("jspsych-canvas-stimulus");
                 let canvas_rect = () => {return canvas_el.getBoundingClientRect()};
 
+
+                // add a pointer indicator
                 loc_indicator = new fabric.Circle({
                             radius: 20, fill: 'red', selectable:false, hoverCursor:'auto', left:-9999, top:-9999, opacity:0.7, originX: 'center', originY: 'center'
                             });
+
+                // define what to do when touched/clicked
                 canvas.on('mouse:down', function(options) {
                         // remove previous 
                         canvas.remove(loc_indicator)
 
-                        // update loc and add it back to the canvas for mouse and for touchscreen devices
+                        // update loc for mouse and for touchscreen devices
                         let report_x, report_y;
                         if (''+options.e == '[object MouseEvent]') { 
                             report_x = Math.round(options.e.clientX - canvas_rect().x)
@@ -137,6 +213,7 @@
                             report_y = Math.round(touch.clientY - canvas_rect().y)
                         }
 
+                        // add it back to the canvas
                         loc_indicator.set({left:report_x, top: report_y}),
                         canvas.add(loc_indicator)
                                             
@@ -146,25 +223,36 @@
                 
 
                 // add a bunch of objects in  the briefcase 
-                for (let i=0; i < fabric_imgs.length; i++){ 
-                    let obj = fabric_imgs[i]
+                for (let obj of shuffled_selection){ 
+
+                    // handle scaling of objects to make them uniform in size
+                    let half_diag = 0.5 * (obj.width**2 + obj.height**2)**0.5  
+                    let required_half_diag = obj_canvas_ratio * canvas_rect().width 
+                    let obj_scale = required_half_diag / half_diag 
                     obj.scaleX = obj_scale
                     obj.scaleY = obj_scale
+                    obj.opacity = 1
+
+                    // select random color
+                    obj.forEachObject(obj_el => {obj_el.fill= 'black'});
+
+                    // set to random rotation/orientation
                     obj.angle = Math.round(Math.random()*360)
 
-                    let max_rad = (obj.width**2 + obj.height**2)**0.5  * obj_scale
+                    let half_diag_scaled = half_diag * obj_scale 
 
-                    obj.left = Math.round(Math.random()*(canvas_w - max_rad) + max_rad*0.5)
-                    obj.top  = Math.round(Math.random()*(canvas_h - max_rad) + max_rad*0.5)
+                    obj.left = Math.round(  Math.random()*(canvas_w - half_diag_scaled*1.2) + half_diag_scaled*0.5*1.2  )
+                    obj.top  = Math.round(  Math.random()*(canvas_h - half_diag_scaled*1.2) + half_diag_scaled*0.5*1.2  )
                     canvas.add(obj) 
 
-                    object_info[obj.img_label] = {x:obj.left, y:obj.top, angle:obj.angle}
-                }  
-
+                    object_info[obj.img_label] = {x:obj.left, y:obj.top, angle:obj.angle, color:obj.item(0).fill}
+                } 
+                
+                
                 canvas.renderAll()
                 
             },      
-            choices: ['q'],
+            choices: 'NO_KEYS',
 
             on_finish:(data) => { 
                 data.reported_loc_on_canvas = {x:loc_indicator.left, y:loc_indicator.top}
@@ -191,11 +279,17 @@
    
     
 
-    let timeline = [preload, fabric_preload, intro, make_trial(), make_trial(), intro]
+    let timeline = [intro, make_trial(2), make_trial(2), make_trial(2), make_trial(1), make_trial(0), make_trial(0),intro]
 
 
     
     jsPsych.run(timeline);   
+
+    // extra functions
+    function get_rand_rgb_str(){
+        return `rgb(${Math.round(Math.random()*255)}, ${Math.round(Math.random()*255)}, ${Math.round(Math.random()*255)})`
+    }
+    
 
   </script>
 </html>
