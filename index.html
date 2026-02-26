@@ -57,7 +57,7 @@
     const canvas_h = 500
     const obj_canvas_ratio = 0.1 // makes objects 5 x smaller than canvas
     const canvas_size = [canvas_w,canvas_h]
-    let n_objects =2
+    let n_objects = 12
    
     const non_target_item_paths = [
         "doodle icons/icons/bag-2.svg",
@@ -168,6 +168,7 @@
         });
     };
 
+
     function make_trial(n_targets) {
         let loc_indicator
         let object_info = {}
@@ -181,13 +182,12 @@
                 // select targets and nontargets 
                 let selected_non_targets = jsPsych.randomization.sampleWithoutReplacement(non_target_items, n_objects-n_targets)
                 let selected_targets = jsPsych.randomization.sampleWithoutReplacement(target_items, n_targets)
-
-                
+ 
                 let shuffled_selection = jsPsych.randomization.shuffle([...selected_non_targets, ...selected_targets])
-                console.log(shuffled_selection)
+
                 // initialize canvas and timestamp
                 timestamp = performance.now()
-                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'white', selection:false, centeredScaling:true});
+                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'yellow', selection:false, centeredScaling:true});
                 let canvas_el = document.getElementById("jspsych-canvas-stimulus");
                 let canvas_rect = () => {return canvas_el.getBoundingClientRect()};
 
@@ -220,7 +220,6 @@
                         //end trial 
                         jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )                    
                 });
-                
 
                 // add a bunch of objects in  the briefcase 
                 for (let obj of shuffled_selection){ 
@@ -234,7 +233,7 @@
                     obj.opacity = 1
 
                     // select random color
-                    obj.forEachObject(obj_el => {obj_el.fill= 'black'});
+                    obj.forEachObject(obj_el => {obj_el.fill= 'k'});
 
                     // set to random rotation/orientation
                     obj.angle = Math.round(Math.random()*360)
@@ -246,9 +245,10 @@
                     canvas.add(obj) 
 
                     object_info[obj.img_label] = {x:obj.left, y:obj.top, angle:obj.angle, color:obj.item(0).fill}
+
+
                 } 
-                
-                
+                                
                 canvas.renderAll()
                 
             },      
@@ -257,6 +257,7 @@
             on_finish:(data) => { 
                 data.reported_loc_on_canvas = {x:loc_indicator.left, y:loc_indicator.top}
                 data.object_info = object_info
+                data.n_targets = n_targets
                 jsPsych.pluginAPI.clearAllTimeouts()
             }
         } 
@@ -279,7 +280,12 @@
    
     
 
-    let timeline = [intro, make_trial(2), make_trial(2), make_trial(2), make_trial(1), make_trial(0), make_trial(0),intro]
+    let timeline = [intro]
+
+    for (let i=0; i < 15 ; i++ ) {
+        let num_of_targets = Math.round(Math.random()*2) 
+        timeline.push( make_trial( num_of_targets ) ) 
+    }
 
 
     
