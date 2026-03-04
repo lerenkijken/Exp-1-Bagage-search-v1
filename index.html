@@ -71,24 +71,28 @@
 
     // participant & exp info
     // later use this: "let urlvars = jsPsych.data.urlVariables()" "
-    let urlvars = {
-        uid: jsPsych.randomization.randomID(10),
-        token: jsPsych.randomization.randomID(15),
-        exp_id:'Exp-1-bagage'
+    function get_urlvars ()  {
+        //let urlvars = jsPsych.data.urlVariables()
+        let urlvars = {
+            uid: jsPsych.randomization.randomID(10),
+            token: jsPsych.randomization.randomID(15),
+            exp_id:'Exp-1-bagage'
+        }
+        return urlvars
     } 
 
+        
+    let device_and_user_info = {
+        type: jsPsychBrowserCheck,
+        data: get_urlvars
+    };
 
-    jsPsych.data.addProperties({
-        uid: urlvars.uid,
-        token: urlvars.token,
-        exp_id: urlvars.exp_id,
-    });
 
     // trial parameters
     const person_presentation_time = 1000
     const grid_presentation_time = 5000
     const obj_canvas_ratio = 0.1 // makes objects 5 x smaller than canvas
-    let n_objects = 12
+    let n_objects = 10
 
 
     // get device info 
@@ -306,8 +310,9 @@
 
             on_finish:(data) => { 
                 data.reported_loc_on_canvas = {x:loc_indicator.left, y:loc_indicator.top}
-                data.object_info = object_info
                 data.n_targets = n_targets
+                data.object_info = object_info
+                
                 jsPsych.pluginAPI.clearAllTimeouts()
             }
         } 
@@ -318,7 +323,7 @@
     // build trial sequence:
     const intro = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: "<h1>Welkom! - v3 check event </h1>",
+        stimulus: "<h1>Welkom! - test version 4 </h1>",
         choices: ["<h2>Begin!</h2>"],
         data:{
             label:'intro',
@@ -328,12 +333,8 @@
     let all_indices = [...Array(13).keys()]
     let crowd_indices = jsPsych.randomization.sampleWithoutReplacement(all_indices, 6)
    
-    
-    let browser_check_trial = {
-        type: jsPsychBrowserCheck
-    };
 
-    let timeline = [browser_check_trial, intro]
+    let timeline = [device_and_user_info, intro]
 
     for (let i=0; i < 3 ; i++ ) {
         let num_of_targets = Math.round(Math.random()*2) 
