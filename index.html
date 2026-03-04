@@ -336,7 +336,8 @@
 
     let timeline = [device_and_user_info, intro]
 
-    for (let i=0; i < 3 ; i++ ) {
+    // make 3 trials with random number of targets (gun/knife)
+    for (let i=0; i < 4 ; i++ ) {
         let num_of_targets = Math.round(Math.random()*2) 
         timeline.push( make_trial( num_of_targets ) ) 
     }
