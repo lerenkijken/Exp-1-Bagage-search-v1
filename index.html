@@ -15,6 +15,7 @@
     <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
     <script src="https://unpkg.com/@jspsych/plugin-call-function@2.1.0"></script>
     <script src="https://unpkg.com/@jspsych/plugin-canvas-keyboard-response@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-canvas-button-response@2.1.0"></script>
     <script src="https://unpkg.com/@jspsych/plugin-browser-check@2.1.0"></script>
     
     <script src="fabric.js"></script> 
@@ -23,7 +24,7 @@
     <style> 
         .jspsych-display-element {
             font-size: 30px;
-            background-color: #00158d;
+            background-color: #000000;
             font-family:  Cambria;
             color: #ffffff;
         }
@@ -92,7 +93,7 @@
     // trial parameters
     const person_presentation_time = 1000
     const grid_presentation_time = 5000
-    const obj_briefcase_ratio = 0.055 // makes objects 5 x smaller than canvas
+    const obj_briefcase_ratio = 0.055 // makes objects 20 times smaller than canvas
     let n_objects = 12
 
     // set fabric object settings 
@@ -116,7 +117,7 @@
     function get_canvas_size() {
         let device_info = get_device_info()
         
-        return [device_info.height * 0.8, device_info.width * 0.8,    ] 
+        return [device_info.height * 0.6, device_info.width * 0.8,    ] 
     }
 
    
@@ -165,7 +166,7 @@
         "doodle icons/icons/heart-beat.svg",
         "doodle icons/icons/heart.svg",
         "doodle icons/icons/ice-cream.svg",
-        "doodle icons/icons/injection.svg",
+        //   //   //  "doodle icons/icons/injection.svg",  < -- this one is a bit too gun/knife like, maybe add later with more targets
         "doodle icons/icons/key.svg",
         "doodle icons/icons/lock.svg",
         "doodle icons/icons/lungs.svg",
@@ -225,17 +226,18 @@
 
 
         }, function(item, object) {
-                svg_obj_group.push(object);
+                svg_obj_group.push(object); 
         });
     };
 
 
     function make_trial(n_targets, loaction_cue_label=null) {
         let loc_indicator
+        let trial_start_time, rt
         let object_info = {}
 
         let fabric_trial = {
-            type: jsPsychCanvasKeyboardResponse,
+            type: jsPsychCanvasButtonResponse,
             canvas_size: get_canvas_size,
             trial_duration: null,
             stimulus: function (c) {
@@ -247,7 +249,7 @@
                 let shuffled_selection = jsPsych.randomization.shuffle([...selected_non_targets, ...selected_targets])
 
                 // initialize canvas and timestamp
-                timestamp = performance.now()
+                trial_start_time = performance.now()
                 let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'white', selection:false, centeredScaling:true});
                 let canvas_el = document.getElementById("jspsych-canvas-stimulus");
 
@@ -285,10 +287,12 @@
                 })
                 console.log( briefcase_body.left,  briefcase_body.top)
                 let briefcase_scale;
-                // in wide format
+
+                // if lanscape orientation, scale based on width of canvas, otherwise scale based on height. 
+                // This way the briefcase fits on the screen regardless of orientation 
                 if ( (canvas_rect().height / canvas_rect().width)  >  (briefcase.height / briefcase.width) ){
                     briefcase_scale = 0.95 * canvas_rect().width / briefcase.width 
-                } else {
+                } else { // if portrait scale accordingly
                     briefcase_scale = 0.95 * canvas_rect().height / briefcase.height 
                 }
 
@@ -352,6 +356,7 @@
                         canvas.add(loc_indicator)
                                             
                         //end trial 
+                        rt = Math.round(performance.now() - trial_start_time)
                         jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )                    
                 });
 
@@ -426,13 +431,15 @@
                 canvas.renderAll()
                 
             },      
-            choices: 'NO_KEYS',
+            choices: ['Veilig'],
 
             on_finish:(data) => { 
                 data.reported_loc_on_canvas = {x:loc_indicator.left, y:loc_indicator.top}
                 data.n_targets = n_targets
                 data.cued_area = loaction_cue_label
+                data.rt = rt ? rt : Math.round(performance.now() - trial_start_time)
                 data.object_info = object_info
+                
                 
                 jsPsych.pluginAPI.clearAllTimeouts()
             }
