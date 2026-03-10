@@ -231,7 +231,20 @@
                 svg_obj_group.push(object); 
         });
     };
+    
 
+
+
+    let blank_trial = {
+                type: jsPsychCanvasButtonResponse,
+                canvas_size: get_canvas_size,
+                trial_duration: 200,
+                stimulus: function (c) {
+                    let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'white', selection:false, centeredScaling:true});
+                },
+                choices: () => [get_device_info().mobile ? '<h1>Veilig</h1>': 'Veilig' ],
+                response_ends_trial: false
+    }
 
     function make_trial(n_targets, loaction_cue_label=null) {
         let loc_indicator
@@ -366,10 +379,9 @@
                         //end trial and save data 
                         rt = Math.round(performance.now() - trial_start_time)
                         sig_det_label = n_targets == 1 ? 'hit' : 'false alarm' // update to present response
-                        resp_dist_px = Math.round( ( (report_x - target_x)**2 + (report_y - target_y)**2 )**0.5 )
+                        resp_dist_px = get_dist(report_x, report_y, target_x, target_y) 
                         resp_dist_norm = 100 * resp_dist_px / briefcase_diag  // relative to canvas size, so comparable across devices
-                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )     
-
+                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )
                 });
 
                 // add a bunch of objects in  the briefcase 
@@ -491,7 +503,7 @@
         let num_of_targets = get_rand_int(0,1) 
         let selected_cue = jsPsych.randomization.sampleWithoutReplacement(['top left', 'top right', 'bottom left','bottom right', 'center', null], 1)[0]
         // let selected_cue = ['top left', 'top right', 'bottom left','bottom right', 'center', null][i%6]
-        timeline.push( make_trial( num_of_targets, loaction_cue_label=selected_cue ) ) 
+        timeline.push( make_trial( num_of_targets, loaction_cue_label=selected_cue ), blank_trial ) 
     }
 
     
@@ -511,6 +523,11 @@
     function get_rand_float(min, max) {
         return Math.random() * (max - min) + min;
     }
+
+    function get_dist(x1, y1, x2, y2) {
+        return ( (x2-x1)**2 + (y2-y1)**2 )**0.5
+    }
+
   </script>
 </html>
 
