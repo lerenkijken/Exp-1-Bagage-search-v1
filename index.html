@@ -21,6 +21,7 @@
     <script src="fabric.js"></script> 
     <!-- https://fabric5.fabricjs.com/fabric-intro-part-1#objects  -->
     <link href="https://unpkg.com/jspsych@8.2.2/css/jspsych.css" rel="stylesheet" type="text/css" />  
+
     <style> 
         .jspsych-display-element {
             font-size: 30px;
@@ -35,6 +36,7 @@
             color: #ffffff;
             background-color: #001dbe;
             border-color: #00000000;
+             
             padding: 1px 60px;
         }
         #jspsych-progressbar-container {
@@ -431,7 +433,7 @@
                 canvas.renderAll()
                 
             },      
-            choices: ['Veilig'],
+            choices: () => [get_device_info().mobile ? '<h1>Veilig</h1>': 'Veilig' ],
 
             on_finish:(data) => { 
                 data.reported_loc_on_canvas = {x:loc_indicator.left, y:loc_indicator.top}
