@@ -23,7 +23,7 @@
     <style> 
         .jspsych-display-element {
             font-size: 30px;
-            background-color: #000000;
+            background-color: #00158d;
             font-family:  Cambria;
             color: #ffffff;
         }
@@ -76,7 +76,8 @@
         let urlvars = {
             uid: jsPsych.randomization.randomID(10),
             token: jsPsych.randomization.randomID(15),
-            exp_id:'Exp-1-bagage'
+            exp_id:'Exp-1-bagage',
+            exp_version: 'v0.1'
         }
         return urlvars
     } 
@@ -91,13 +92,13 @@
     // trial parameters
     const person_presentation_time = 1000
     const grid_presentation_time = 5000
-    const obj_canvas_ratio = 0.075 // makes objects 5 x smaller than canvas
+    const obj_briefcase_ratio = 0.055 // makes objects 5 x smaller than canvas
     let n_objects = 12
 
     // set fabric object settings 
     fabric.Object.prototype.selectable = false
-    fabric.Object.prototype.selectable=false
-    fabric.Object.prototype.hoverCursor='auto'
+    fabric.Object.prototype.selectable = false
+    fabric.Object.prototype.hoverCursor ='auto'
     fabric.Object.prototype.originX= 'center'
     fabric.Object.prototype.originY= 'center'
 
@@ -114,9 +115,8 @@
 
     function get_canvas_size() {
         let device_info = get_device_info()
-        // let canvas_dim = Math.min( device_info.width, device_info.height) * 0.8
-
-        return [device_info.height * 0.8,device_info.width * 0.8,    ] 
+        
+        return [device_info.height * 0.8, device_info.width * 0.8,    ] 
     }
 
    
@@ -230,7 +230,7 @@
     };
 
 
-    function make_trial(n_targets, loaction_cue=null) {
+    function make_trial(n_targets, loaction_cue_label=null) {
         let loc_indicator
         let object_info = {}
 
@@ -248,18 +248,90 @@
 
                 // initialize canvas and timestamp
                 timestamp = performance.now()
-                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'yellow', selection:false, centeredScaling:true});
+                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:'white', selection:false, centeredScaling:true});
                 let canvas_el = document.getElementById("jspsych-canvas-stimulus");
-                let canvas_rect = () => {return canvas_el.getBoundingClientRect()};
 
+                let canvas_rect = () => {return canvas_el.getBoundingClientRect()};
+                let canvas_diag = (canvas_rect().width**2 + canvas_rect().height**2)**0.5
 
                 // add a pointer indicator
                 loc_indicator = new fabric.Circle({
-                            // radius: 20, fill: 'red', selectable:false, hoverCursor:'auto', left:-9999, top:-9999, opacity:0.7, originX: 'center', originY: 'center'
-                            radius: 20, fill: 'red', left:-9999, top:-9999, opacity:0.7, 
-                            });
+                    radius: 20, fill: 'red', left:-9999, top:-9999, opacity:0.7, 
+                });
 
-                // define what to do when touched/clicked
+                // add briefcase 
+                let briefcase_color = 'hotpink' 
+
+                var briefcase_body  = new fabric.Rect({
+                    // left:0, top:0, 
+                    width:1600, height:900,
+                    rx: 5, ry: 5, // round the corners
+                    strokeWidth:0,
+                    fill:briefcase_color, 
+                });
+
+
+                let briefcase_handle = new fabric.Ellipse({
+                    left:0, top:-450,
+                    rx: briefcase_body.width*0.2,
+                    ry: briefcase_body.width*0.05,
+                    strokeWidth:briefcase_body.width*0.03,
+                    stroke: briefcase_color,
+                    fill:'rgba(0,0,0,0)'
+                })
+
+                let briefcase = new fabric.Group([briefcase_handle, briefcase_body], {   
+                    left: canvas_rect().width*0.5, top: canvas_rect().height*0.5,
+                })
+                console.log( briefcase_body.left,  briefcase_body.top)
+                let briefcase_scale;
+                // in wide format
+                if ( (canvas_rect().height / canvas_rect().width)  >  (briefcase.height / briefcase.width) ){
+                    briefcase_scale = 0.95 * canvas_rect().width / briefcase.width 
+                } else {
+                    briefcase_scale = 0.95 * canvas_rect().height / briefcase.height 
+                }
+
+                if (canvas_rect().width < canvas_rect().height){
+                    briefcase.rotate(90)
+                    
+                    if ( (canvas_rect().height / canvas_rect().width) >  (briefcase.width / briefcase.height) ){  // flip direction of comparison
+                        briefcase_scale = 0.95 * canvas_rect().width / briefcase.height 
+                    } else {
+                        briefcase_scale = 0.95 * canvas_rect().height / briefcase.width 
+                    }                                 
+                } 
+
+                briefcase.scale(briefcase_scale)               
+                canvas.add(briefcase)
+
+                function get_briefcase_body_rect() {
+                    let rect_properties
+                    let handle_offset = briefcase_handle.ry + briefcase_handle.strokeWidth*0.5
+                    if (canvas_rect().width > canvas_rect().height){
+                        rect_properties =  {
+                            left:briefcase.left, 
+                            top: briefcase.top + handle_offset * briefcase_scale * 0.5 , 
+                            width:briefcase.width*briefcase_scale, 
+                            height: (briefcase.height - handle_offset) * briefcase_scale , 
+                            }
+                    } else {
+                        rect_properties =  {
+                            left:   briefcase.left - handle_offset * briefcase_scale * 0.5, 
+                            top:    briefcase.top, 
+                            height: briefcase.width * briefcase_scale, 
+                            width:  (briefcase.height - handle_offset) * briefcase_scale , 
+                        }
+                    }
+                    return rect_properties
+                }               
+
+                // let debug_rect = new fabric.Rect(get_briefcase_body_rect())
+                // debug_rect.opacity=0.6
+                // canvas.add(debug_rect)
+
+
+
                 canvas.on('mouse:down', function(options) {
                         // remove previous 
                         canvas.remove(loc_indicator)
@@ -285,10 +357,10 @@
 
                 // add a bunch of objects in  the briefcase 
                 for (let obj of shuffled_selection){ 
-
+                    let briefcase_diag = (get_briefcase_body_rect().width**2 + get_briefcase_body_rect().height**2)**0.5 
                     // handle scaling of objects to make them uniform in size
                     let half_diag = 0.5 * (obj.width**2 + obj.height**2)**0.5  
-                    let required_half_diag = obj_canvas_ratio * canvas_rect().width 
+                    let required_half_diag = obj_briefcase_ratio * briefcase_diag  
                     let obj_scale = required_half_diag / half_diag 
                     obj.scale(obj_scale)// obj.scaleY = obj_scale // obj.scaleX = obj_scale
                     obj.opacity = 1
@@ -301,8 +373,10 @@
 
                     let half_diag_scaled = half_diag * obj_scale *1.2
 
-                    obj.left = Math.round(  Math.random()*(canvas_rect().width  - half_diag_scaled) + half_diag_scaled*0.5  )
-                    obj.top  = Math.round(  Math.random()*(canvas_rect().height  - half_diag_scaled) + half_diag_scaled*0.5  )
+                    let bcr = get_briefcase_body_rect()
+                    // set object location
+                    obj.left = get_rand_int( bcr.left - (bcr.width*0.5 - half_diag_scaled) ,    bcr.left + (bcr.width*0.5 - half_diag_scaled) )
+                    obj.top  = get_rand_int( bcr.top -  (bcr.height*0.5 - half_diag_scaled),    bcr.top  + (bcr.height*0.5 - half_diag_scaled) )
                     canvas.add(obj) 
 
                     object_info[obj.img_label] = {x:obj.left, y:obj.top, angle:obj.angle, color:obj.item(0).fill}
@@ -311,42 +385,43 @@
                 } 
 
                 // add area cue
-                let canvas_half_diag = 0.5 * (canvas_rect().width**2 + canvas_rect().height**2)**0.5  
-                let area_cue = new fabric.Rect();
+                let location_cue_obj = new fabric.Rect();
                 let cue_x, cue_y
-                if        (loaction_cue == 'top left'    ) {
-                    [cue_x, cue_y] = [canvas_rect().width*0.25, canvas_rect().height*0.25 ] 
+                let bcr = get_briefcase_body_rect()
+                
+                if        (loaction_cue_label == 'top left'    ) {
+                    [cue_x, cue_y] = [bcr.left - bcr.width*0.25,  bcr.top - bcr.height*0.25 ] 
 
-                } else if (loaction_cue == 'top right'   ) {
-                    [cue_x, cue_y] = [canvas_rect().width*0.75, canvas_rect().height*0.25 ] 
+                } else if (loaction_cue_label == 'top right'   ) {
+                    [cue_x, cue_y] = [bcr.left + bcr.width*0.25, bcr.top - bcr.height*0.25  ] 
 
-                } else if (loaction_cue == 'bottom left' ) {
-                    [cue_x, cue_y] = [canvas_rect().width*0.25, canvas_rect().height*0.75 ] 
+                } else if (loaction_cue_label == 'bottom left' ) {
+                    [cue_x, cue_y] = [bcr.left - bcr.width*0.25, bcr.top + bcr.height*0.25 ] 
 
-                } else if (loaction_cue == 'bottom right') {
-                    [cue_x, cue_y] = [canvas_rect().width*0.75, canvas_rect().height*0.75 ] 
+                } else if (loaction_cue_label == 'bottom right') {
+                    [cue_x, cue_y] = [bcr.left + bcr.width*0.25, bcr.top + bcr.height*0.25  ] 
 
-                } else if (loaction_cue == 'center' ) {
-                    [cue_x, cue_y] = [canvas_rect().width*0.5, canvas_rect().height*0.5 ] 
+                } else if (loaction_cue_label == 'center' ) {
+                    [cue_x, cue_y] = [bcr.left, bcr.top ] 
 
                 } else {
                     [cue_x, cue_y] = [canvas_rect().width*1000, canvas_rect().height*1000] 
                 }
                 
-                
-                if (loaction_cue) {
-                    area_cue.set({
+                let briefcase_diag = (bcr.width**2 + bcr.height**2)**0.5 
+                if (loaction_cue_label) {
+                    location_cue_obj.set({
                         left:cue_x, top:cue_y,                        
-                        strokeWidth: canvas_half_diag * 0.03, 
+                        strokeWidth: briefcase_diag * 0.015, 
                         rx: 20, ry: 20, // round the corners
-                        stroke: 'rgb(255,0,55, 0.4)', 
+                        stroke: 'rgb(55,0,255, 0.4)', 
                         fill: 'rgba(0,0,0,0)' 
                     });
                     // leave space betwee the cue and edge
-                    area_cue.width = canvas_rect().width * 0.5 - area_cue.strokeWidth*2
-                    area_cue.height = canvas_rect().height* 0.5 - area_cue.strokeWidth*2
+                    location_cue_obj.width = bcr.width * 0.5 - location_cue_obj.strokeWidth*2
+                    location_cue_obj.height = bcr.height* 0.5 - location_cue_obj.strokeWidth*2
 
-                    canvas.add(area_cue)     
+                    canvas.add(location_cue_obj)     
                     }        
                 canvas.renderAll()
                 
@@ -356,7 +431,7 @@
             on_finish:(data) => { 
                 data.reported_loc_on_canvas = {x:loc_indicator.left, y:loc_indicator.top}
                 data.n_targets = n_targets
-                data.cued_area = loaction_cue
+                data.cued_area = loaction_cue_label
                 data.object_info = object_info
                 
                 jsPsych.pluginAPI.clearAllTimeouts()
@@ -386,7 +461,8 @@
     for (let i=0; i < 10 ; i++ ) {
         let num_of_targets = Math.round(Math.random()*2) 
         let selected_cue = jsPsych.randomization.sampleWithoutReplacement(['top left', 'top right', 'bottom left','bottom right', 'center', null], 1)[0]
-        timeline.push( make_trial( num_of_targets, loaction_cue=selected_cue ) ) 
+        // let selected_cue = ['top left', 'top right', 'bottom left','bottom right', 'center', null][i%6]
+        timeline.push( make_trial( num_of_targets, loaction_cue_label=selected_cue ) ) 
     }
 
     
@@ -396,8 +472,16 @@
     function get_rand_rgb_str(){
         return `rgb(${Math.round(Math.random()*255)}, ${Math.round(Math.random()*255)}, ${Math.round(Math.random()*255)})`
     }
-    
 
+    function get_rand_int(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
+    function get_rand_float(min, max) {
+        return Math.random() * (max - min) + min;
+    }
   </script>
 </html>
 
