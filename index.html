@@ -236,6 +236,10 @@
     function make_trial(n_targets, loaction_cue_label=null) {
         let loc_indicator
         let trial_start_time, rt
+        let target_x, target_y
+        let sig_det_label = n_targets == 0 ? 'correct rejection' : 'miss'; // default to absent response
+        let resp_dist_px, resp_dist_norm;
+    
         let object_info = {}
 
         let fabric_trial = {
@@ -332,10 +336,12 @@
                     return rect_properties
                 }               
 
+               let briefcase_diag = (get_briefcase_body_rect().width**2 + get_briefcase_body_rect().height**2)**0.5 
                 // let debug_rect = new fabric.Rect(get_briefcase_body_rect())
                 // debug_rect.opacity=0.6
                 // canvas.add(debug_rect)
 
+            
 
 
                 canvas.on('mouse:down', function(options) {
@@ -357,14 +363,18 @@
                         loc_indicator.set({left:report_x, top: report_y}),
                         canvas.add(loc_indicator)
                                             
-                        //end trial 
+                        //end trial and save data 
                         rt = Math.round(performance.now() - trial_start_time)
-                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )                    
+                        sig_det_label = n_targets == 1 ? 'hit' : 'false alarm' // update to present response
+                        resp_dist_px = Math.round( ( (report_x - target_x)**2 + (report_y - target_y)**2 )**0.5 )
+                        resp_dist_norm = 100 * resp_dist_px / briefcase_diag  // relative to canvas size, so comparable across devices
+                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )     
+
                 });
 
                 // add a bunch of objects in  the briefcase 
                 for (let obj of shuffled_selection){ 
-                    let briefcase_diag = (get_briefcase_body_rect().width**2 + get_briefcase_body_rect().height**2)**0.5 
+                    
                     // handle scaling of objects to make them uniform in size
                     let half_diag = 0.5 * (obj.width**2 + obj.height**2)**0.5  
                     let required_half_diag = obj_briefcase_ratio * briefcase_diag  
@@ -384,6 +394,13 @@
                     // set object location
                     obj.left = get_rand_int( bcr.left - (bcr.width*0.5 - half_diag_scaled) ,    bcr.left + (bcr.width*0.5 - half_diag_scaled) )
                     obj.top  = get_rand_int( bcr.top -  (bcr.height*0.5 - half_diag_scaled),    bcr.top  + (bcr.height*0.5 - half_diag_scaled) )
+                    
+                    if (obj.img_label.includes('gun') || obj.img_label.includes('knife')) {
+                        target_x = obj.left
+                        target_y = obj.top
+                    }
+
+
                     canvas.add(obj) 
 
                     object_info[obj.img_label] = {x:obj.left, y:obj.top, angle:obj.angle, color:obj.item(0).fill}
@@ -415,7 +432,7 @@
                     [cue_x, cue_y] = [canvas_rect().width*1000, canvas_rect().height*1000] 
                 }
                 
-                let briefcase_diag = (bcr.width**2 + bcr.height**2)**0.5 
+                
                 if (loaction_cue_label) {
                     location_cue_obj.set({
                         left:cue_x, top:cue_y,                        
@@ -440,8 +457,11 @@
                 data.n_targets = n_targets
                 data.cued_area = loaction_cue_label
                 data.rt = rt ? rt : Math.round(performance.now() - trial_start_time)
-                data.object_info = object_info
+                data.sig_det_label = sig_det_label
+                data.resp_dist_px = resp_dist_px
+                data.resp_dist_norm = resp_dist_norm
                 
+                data.object_info = object_info
                 
                 jsPsych.pluginAPI.clearAllTimeouts()
             }
@@ -466,9 +486,9 @@
 
     let timeline = [device_and_user_info, intro]
 
-    // make 3 trials with random number of targets (gun/knife)
+    // make 10 trials with random number of targets (gun/knife) and random cue location (or no cue)
     for (let i=0; i < 10 ; i++ ) {
-        let num_of_targets = Math.round(Math.random()*2) 
+        let num_of_targets = get_rand_int(0,1) 
         let selected_cue = jsPsych.randomization.sampleWithoutReplacement(['top left', 'top right', 'bottom left','bottom right', 'center', null], 1)[0]
         // let selected_cue = ['top left', 'top right', 'bottom left','bottom right', 'center', null][i%6]
         timeline.push( make_trial( num_of_targets, loaction_cue_label=selected_cue ) ) 
