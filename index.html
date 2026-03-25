@@ -75,9 +75,9 @@
 
 
 
+    let exp_version = '0.0.6'
+    const exp_id = 'exp_1.'+exp_version
     
-    const exp_id = 'exp_1'
-    let exp_version = '0.0.5'
     const url_vars = jsPsych.data.urlVariables()
 
     url_vars['exp_version'] = exp_version
@@ -541,7 +541,7 @@
             let mean_rt = search_trials.select('rt').mean()
 
             summary_object.mean_rt = mean_rt
-            summary_object.false_alarms = 9.9
+            summary_object.false_alarms = '0.0.6'
 
             jsPsych.data.get().first(1).values()[0]['user_summary_info'] = summary_object
         },
