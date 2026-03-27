@@ -15,8 +15,11 @@
     <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
     <script src="https://unpkg.com/@jspsych/plugin-call-function@2.1.0"></script>
     <script src="https://unpkg.com/@jspsych/plugin-canvas-keyboard-response@1.1.3"></script>
-    <script src="https://unpkg.com/@jspsych/plugin-canvas-button-response@2.1.0"></script>
     <script src="https://unpkg.com/@jspsych/plugin-browser-check@2.1.0"></script>
+
+    <script src="plugin-canvas-button-response-exp-1.js"></script>
+
+
 
     <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
     
@@ -43,6 +46,24 @@
   <body></body>
   <script>
 
+/*
+    blue
+    Rgb 45,0,200
+    Hex #2d00c8
+
+    yellow
+    Rgb 255,204,0
+    Hex #ffcc00
+
+    pink
+    Rgb 255,102,153
+    Hex #ff6699
+
+    orange
+    Rgb 254,153,0
+    Hex #fe9900
+
+*/
     //Initialize jsPsysch
     const jsPsych = initJsPsych({
         show_progress_bar: true,
@@ -75,8 +96,8 @@
 
 
 
-    let exp_version = '0.0.6'
-    const exp_id = 'exp_1.'+exp_version
+    let exp_version = '0.0.7'
+    const exp_id = 'exp_1_v'+exp_version
     
     const url_vars = jsPsych.data.urlVariables()
 
@@ -92,9 +113,10 @@
 
 
     // exp / trial parameters
-    const n_search_trials = 3
-    const fabric_canvas_bg = 'black'
-    const obj_briefcase_ratio = 0.055 // makes objects 20 times smaller than canvas
+    const n_search_trials = 5
+    const fabric_canvas_bg = 'white'
+    const obj_briefcase_ratio = 0.055 // makes objects ~20 times smaller than canvas
+    const entry_exit_duration = 350
     let n_objects = 12
 
     // set fabric object settings 
@@ -202,12 +224,18 @@
         "doodle icons/icons/gun.svg",
         
     ] 
+    const interface_symbols_paths = [
+        "doodle icons/icons/danger.svg",
+        "doodle icons/icons/save.svg",
+        
+    ] 
 
     // make fabric objects of the stimuli
     let non_target_items = []
     let target_items = []
+    let save_icon, danger_icon
 
-    for (let img_src of [...non_target_item_paths, ...target_item_paths]) { 
+    for (let img_src of [...non_target_item_paths, ...target_item_paths, ...interface_symbols_paths ]) { // ...interface_symbols_paths
         let img_label = img_src.split('/')[img_src.split('/').length - 1] // get label
 
         let fabric_obj_attributes = { opacity:1, img_label:img_label}
@@ -217,15 +245,22 @@
             let loadedObjects = new fabric.Group(svg_obj_group);
             loadedObjects.set(fabric_obj_attributes);
 
-            // put group in right array
+            // put group in right array or variable
             if ( target_item_paths.includes(img_src) ) {
                 target_items.push(loadedObjects)
-            } else {
+
+            } else if ( non_target_item_paths.includes(img_src) )  { //  
                 non_target_items.push(loadedObjects)
+
+            } 
+            else if ( img_src.includes('danger') )  {
+                danger_icon = loadedObjects
+
+            } else if ( img_src.includes('save') )  {
+                save_icon = loadedObjects
+                
             }
             
-
-
         }, function(item, object) {
                 svg_obj_group.push(object); 
         });
@@ -257,8 +292,9 @@
         let fabric_trial = {
             type: jsPsychCanvasButtonResponse,
             canvas_size: get_canvas_size,
-            trial_duration: null,
-            stimulus: function (c) {
+            choices: ['Veilig'],
+            post_response_delay: entry_exit_duration,
+            stimulus: function (c, buttonGroupElement) {
                 
                 // select targets and nontargets 
                 let selected_non_targets = jsPsych.randomization.sampleWithoutReplacement(non_target_items, n_objects-n_targets)
@@ -274,13 +310,8 @@
                 let canvas_rect = () => {return canvas_el.getBoundingClientRect()};
                 let canvas_diag = (canvas_rect().width**2 + canvas_rect().height**2)**0.5
 
-                // add a pointer indicator
-                loc_indicator = new fabric.Circle({
-                    radius: 20, fill: 'red', left:-9999, top:-9999, opacity:0.7, 
-                });
-
                 // add briefcase 
-                let briefcase_color = 'hotpink' 
+                let briefcase_color = '#ff6699' 
 
                 var briefcase_body  = new fabric.Rect({
                     // left:0, top:0, 
@@ -303,7 +334,7 @@
                 let briefcase = new fabric.Group([briefcase_handle, briefcase_body], {   
                     left: canvas_rect().width*0.5, top: canvas_rect().height*0.5,
                 })
-                console.log( briefcase_body.left,  briefcase_body.top)
+                
                 let briefcase_scale;
 
                 // if lanscape orientation, scale based on width of canvas, otherwise scale based on height. 
@@ -353,35 +384,12 @@
                 // debug_rect.opacity=0.6
                 // canvas.add(debug_rect)
 
-            
-
-
-                canvas.on('mouse:down', function(options) {
-                        // remove previous 
-                        canvas.remove(loc_indicator)
-
-                        // update loc for mouse and for touchscreen devices
-                        let report_x, report_y;
-                        if (''+options.e == '[object MouseEvent]') { 
-                            report_x = Math.round(options.e.clientX - canvas_rect().x)
-                            report_y = Math.round(options.e.clientY - canvas_rect().y)
-                        } else if (''+options.e == '[object TouchEvent]'){
-                            let touch = options.e.touches.item(0)
-                            report_x = Math.round(touch.clientX - canvas_rect().x)
-                            report_y = Math.round(touch.clientY - canvas_rect().y)
-                        }
-
-                        // add it back to the canvas
-                        loc_indicator.set({left:report_x, top: report_y}),
-                        canvas.add(loc_indicator)
-                                            
-                        //end trial and save data 
-                        rt = Math.round(performance.now() - trial_start_time)
-                        sig_det_label = n_targets == 1 ? 'hit' : 'false alarm' // update to present response
-                        resp_dist_px = get_dist(report_x, report_y, target_x, target_y) 
-                        resp_dist_norm = 100 * resp_dist_px / briefcase_diag  // relative to canvas size, so comparable across devices
-                        jsPsych.pluginAPI.setTimeout(()=>{jsPsych.finishTrial()}, 200 )
+                // add a pointer indicator
+                loc_indicator = new fabric.Circle({
+                    radius: briefcase_diag*0.03 , fill: 'red', left:-9999, top:-9999, opacity:0.7, 
                 });
+
+
 
                 // add a bunch of objects in  the briefcase 
                 for (let obj of shuffled_selection){ 
@@ -390,6 +398,7 @@
                     let half_diag = 0.5 * (obj.width**2 + obj.height**2)**0.5  
                     let required_half_diag = obj_briefcase_ratio * briefcase_diag  
                     let obj_scale = required_half_diag / half_diag 
+                    console.log()
                     obj.scale(obj_scale)// obj.scaleY = obj_scale // obj.scaleX = obj_scale
                     obj.opacity = 1
 
@@ -456,12 +465,114 @@
                     location_cue_obj.width = bcr.width * 0.5 - location_cue_obj.strokeWidth*2
                     location_cue_obj.height = bcr.height* 0.5 - location_cue_obj.strokeWidth*2
 
-                    canvas.add(location_cue_obj)     
-                    }        
+                    // canvas.add(location_cue_obj)     
+                    }
+                    
+
+                // entrance animation
+                let all_objects = canvas.getObjects()
+                let all_objects_grouped = new fabric.Group(all_objects)
+                let all_objects_grouped_init_x = all_objects_grouped.left
+                let all_objects_grouped_init_y = all_objects_grouped.top
+
+                all_objects_grouped.animate('top', all_objects_grouped_init_y, {
+                    from: all_objects_grouped_init_y - canvas_rect().height,
+                    onChange: canvas.renderAll.bind(canvas),
+                    duration: entry_exit_duration,
+                    easing: fabric.util.ease.easeOutExpo
+                });
+
+            
+                
                 canvas.renderAll()
+
+
+
+                let move_prop, move_val
+                function remove_briefcase_animation (safety_indicator) {
+                            // exit animation 
+
+                            if (safety_indicator.img_label == 'save.svg') {
+                                move_prop = 'left'
+                                move_val =  canvas_rect().width
+                            } else {
+                                move_prop = 'left'
+                                move_val = - canvas_rect().height
+                            }
+
+                            loc_indicator.animate(move_prop, move_val, {
+                                onChange: canvas.renderAll.bind(canvas),
+                                duration: entry_exit_duration,
+                                easing: fabric.util.ease.easeInExpo
+                            });
+                            safety_indicator.animate(move_prop, move_val, {
+                                onChange: canvas.renderAll.bind(canvas),
+                                duration: entry_exit_duration,
+                                easing: fabric.util.ease.easeInExpo
+                            });
+                            all_objects_grouped.animate(move_prop, move_val, {
+                                onChange: canvas.renderAll.bind(canvas),
+                                duration: entry_exit_duration,
+                                easing: fabric.util.ease.easeInExpo
+                            });
+                        }
+
+                canvas.on('mouse:down', function(options) {
+                        // remove previous 
+                        canvas.remove(loc_indicator)
+
+                        // update loc for mouse and for touchscreen devices
+                        let report_x, report_y;
+                        if (''+options.e == '[object MouseEvent]') { 
+                            report_x = Math.round(options.e.clientX - canvas_rect().x)
+                            report_y = Math.round(options.e.clientY - canvas_rect().y)
+                        } else if (''+options.e == '[object TouchEvent]'){
+                            let touch = options.e.touches.item(0)
+                            report_x = Math.round(touch.clientX - canvas_rect().x)
+                            report_y = Math.round(touch.clientY - canvas_rect().y)
+                        }
+
+                        // add it back to the canvas
+                        loc_indicator.set({left:report_x, top: report_y}),
+                        canvas.add(loc_indicator)
+                                   
+                        // add danger icon
+                        let half_diag = 0.5 * (danger_icon.width**2 + danger_icon.height**2)**0.5  
+                        let required_half_diag = obj_briefcase_ratio * briefcase_diag  
+                        let obj_scale = required_half_diag / half_diag 
+                        danger_icon.scale(obj_scale*3)
+                        danger_icon.set({left:canvas_rect().width/2, top: canvas_rect().height*0.25}),
+                        danger_icon.forEachObject(obj_el => {obj_el.fill= 'red'})
+                        canvas.add(danger_icon)
+
+                        //end trial and save data 
+                        rt = Math.round(performance.now() - trial_start_time)
+                        sig_det_label = n_targets == 1 ? 'hit' : 'false alarm' // update to present response
+                        resp_dist_px = get_dist(report_x, report_y, target_x, target_y) 
+                        resp_dist_norm = 100 * resp_dist_px / briefcase_diag  // relative to canvas size, so comparable across devices
+                        jsPsych.pluginAPI.setTimeout(()=>{ jsPsych.finishTrial()}, entry_exit_duration )
+                        
+                        remove_briefcase_animation(danger_icon)
+
+                        canvas.renderAll()                        
+                });
+
+                for (const button of buttonGroupElement.children) {
+                        button.addEventListener("click", () =>{
+                            // add danger icon
+                            let half_diag = 0.5 * (save_icon.width**2 + save_icon.height**2)**0.5  
+                            let required_half_diag = obj_briefcase_ratio * briefcase_diag  
+                            let obj_scale = required_half_diag / half_diag 
+                            save_icon.scale(obj_scale*3)
+                            save_icon.set({left:canvas_rect().width/2, top: canvas_rect().height*0.25}),
+                            save_icon.forEachObject(obj_el => {obj_el.fill= 'green'})
+                            canvas.add(save_icon)
+                            remove_briefcase_animation(save_icon)
+                        }  );
+                }             
                 
             },      
-            choices:['Veilig'],
+            
 
             on_finish:(data) => {
                 data.label = 'search_trial' 
@@ -476,6 +587,7 @@
                 data.object_info = object_info
                 
                 jsPsych.pluginAPI.clearAllTimeouts()
+                console.log('on finish is called')
             }
         } 
 
