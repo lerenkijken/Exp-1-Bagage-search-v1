@@ -63,6 +63,7 @@
     Rgb 254,153,0
     Hex #fe9900
 
+    
 */
     //Initialize jsPsysch
     const jsPsych = initJsPsych({
@@ -109,13 +110,17 @@
         data: url_vars
     };
 
-
-
+    // theme colors
+    const theme_blue = '#2d00c8' 
+    const theme_yellow = '#ffcc00'
+    const theme_pink = '#ff6699' 
+    const theme_orange = '#fe9900' 
 
     // exp / trial parameters
-    const n_search_trials = 5
-    const fabric_canvas_bg = 'white'
-    const obj_briefcase_ratio = 0.055 // makes objects ~20 times smaller than canvas
+    const n_search_trials = 10
+    const fabric_canvas_bg_col = 'white' 
+    const briefcase_color = theme_pink // ['#ffcc00', '#ff6699', '#fe9900'][Math.floor(Math.random()*3)]
+    const obj_briefcase_ratio = 0.07 // makes objects ~20 times smaller than canvas
     const entry_exit_duration = 350
     let n_objects = 12
 
@@ -227,13 +232,16 @@
     const interface_symbols_paths = [
         "doodle icons/icons/danger.svg",
         "doodle icons/icons/save.svg",
+        "doodle icons/icons/cross.svg",
+        "doodle icons/icons/briefcase_cue.svg"
+        
         
     ] 
 
     // make fabric objects of the stimuli
     let non_target_items = []
     let target_items = []
-    let save_icon, danger_icon
+    let save_icon, danger_icon, cross_icon, pre_cue_icon
 
     for (let img_src of [...non_target_item_paths, ...target_item_paths, ...interface_symbols_paths ]) { // ...interface_symbols_paths
         let img_label = img_src.split('/')[img_src.split('/').length - 1] // get label
@@ -252,12 +260,17 @@
             } else if ( non_target_item_paths.includes(img_src) )  { //  
                 non_target_items.push(loadedObjects)
 
-            } 
-            else if ( img_src.includes('danger') )  {
+            } else if ( img_src.includes('danger') )  {
                 danger_icon = loadedObjects
 
             } else if ( img_src.includes('save') )  {
                 save_icon = loadedObjects
+                
+            } else if ( img_src.includes('cross') )  {
+                cross_icon = loadedObjects
+                
+            } else if ( img_src.includes('briefcase_cue') )  {
+                pre_cue_icon = loadedObjects
                 
             }
             
@@ -265,8 +278,6 @@
                 svg_obj_group.push(object); 
         });
     };
-    
-
 
 
     let blank_trial = {
@@ -274,9 +285,21 @@
                 canvas_size: get_canvas_size,
                 trial_duration: 200,
                 stimulus: function (c) {
-                    let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:fabric_canvas_bg, selection:false, centeredScaling:true});
+                    let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:fabric_canvas_bg_col, selection:false, centeredScaling:true});
                 },
-                choices: () => [get_device_info().mobile ? '<h1>Veilig</h1>': 'Veilig' ],
+                choices: () => ['Veilig' ],
+                response_ends_trial: false
+    }
+
+
+    let cue_trial = {
+                type: jsPsychCanvasButtonResponse,
+                canvas_size: get_canvas_size,
+                trial_duration: 200,
+                stimulus: function (c) {
+                    let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:fabric_canvas_bg_col, selection:false, centeredScaling:true});
+                },
+                choices: ['Veilig' ],
                 response_ends_trial: false
     }
 
@@ -304,15 +327,14 @@
 
                 // initialize canvas and timestamp
                 trial_start_time = performance.now()
-                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:fabric_canvas_bg, selection:false, centeredScaling:true});
+                let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:fabric_canvas_bg_col, selection:false, centeredScaling:true});
                 let canvas_el = document.getElementById("jspsych-canvas-stimulus");
 
                 let canvas_rect = () => {return canvas_el.getBoundingClientRect()};
                 let canvas_diag = (canvas_rect().width**2 + canvas_rect().height**2)**0.5
 
                 // add briefcase 
-                let briefcase_color = '#ff6699' 
-
+                
                 var briefcase_body  = new fabric.Rect({
                     // left:0, top:0, 
                     width:1600, height:900,
@@ -380,17 +402,14 @@
                 }               
 
                let briefcase_diag = (get_briefcase_body_rect().width**2 + get_briefcase_body_rect().height**2)**0.5 
-                // let debug_rect = new fabric.Rect(get_briefcase_body_rect())
-                // debug_rect.opacity=0.6
-                // canvas.add(debug_rect)
 
                 // add a pointer indicator
                 loc_indicator = new fabric.Circle({
-                    radius: briefcase_diag*0.03 , fill: 'red', left:-9999, top:-9999, opacity:0.7, 
+                    radius: briefcase_diag*0.03 , fill: 'red', opacity:0.7, 
                 });
 
-
-
+                loc_indicator.set({left:-9999, top:-9999})
+                let added_object_locations = []
                 // add a bunch of objects in  the briefcase 
                 for (let obj of shuffled_selection){ 
                     
@@ -398,12 +417,13 @@
                     let half_diag = 0.5 * (obj.width**2 + obj.height**2)**0.5  
                     let required_half_diag = obj_briefcase_ratio * briefcase_diag  
                     let obj_scale = required_half_diag / half_diag 
-                    console.log()
-                    obj.scale(obj_scale)// obj.scaleY = obj_scale // obj.scaleX = obj_scale
+                    
+                    obj.scale(obj_scale) // obj.scaleY = obj_scale // obj.scaleX = obj_scale
                     obj.opacity = 1
 
                     // select random color
-                    obj.forEachObject(obj_el => {obj_el.fill= 'k'});
+                    let rand_color = jsPsych.randomization.sampleWithoutReplacement(['black', 'darkblue', 'darkgreen'], 1)[0]
+                    obj.forEachObject(obj_el => {obj_el.fill=rand_color ; obj_el.opacity=0.55});
 
                     // set to random rotation/orientation
                     obj.angle = Math.round(Math.random()*360)
@@ -411,10 +431,32 @@
                     let half_diag_scaled = half_diag * obj_scale *1.2
 
                     let bcr = get_briefcase_body_rect()
-                    // set object location
+
+                    
+                    let locations_tried = 0
+                    function min_dist_ensured(new_loc, old_locs, min_dist=half_diag_scaled){
+                        // return true if there are no old locs yet or if more than 1000 locs are tried
+                        if (old_locs.length < 1 || locations_tried>500) {return true}
+
+                        // if any old loc is too close return false
+                        for (let [x1,y1] of old_locs){
+                            let computed_dist = get_dist(x1, y1, new_loc[0], new_loc[1])
+                            if ( computed_dist < required_half_diag*2) { return false}
+                        }
+
+                        // otherwise all good
+                        return true                        
+                    }
+                    // set object location ensuring no clumping
+                    do {
                     obj.left = get_rand_int( bcr.left - (bcr.width*0.5 - half_diag_scaled) ,    bcr.left + (bcr.width*0.5 - half_diag_scaled) )
                     obj.top  = get_rand_int( bcr.top -  (bcr.height*0.5 - half_diag_scaled),    bcr.top  + (bcr.height*0.5 - half_diag_scaled) )
-                    
+                    locations_tried++ 
+                    } while ( ! min_dist_ensured([obj.left, obj.top], added_object_locations)  )  // add a negation: while NOT mininum distance esured, look for another place
+
+                    added_object_locations.push([obj.left, obj.top])
+                    console.log('locations_tried', locations_tried);
+
                     if (obj.img_label.includes('gun') || obj.img_label.includes('knife')) {
                         target_x = obj.left
                         target_y = obj.top
@@ -465,10 +507,11 @@
                     location_cue_obj.width = bcr.width * 0.5 - location_cue_obj.strokeWidth*2
                     location_cue_obj.height = bcr.height* 0.5 - location_cue_obj.strokeWidth*2
 
-                    // canvas.add(location_cue_obj)     
-                    }
+                    canvas.add(location_cue_obj)     
+                }
                     
-
+                    
+                    
                 // entrance animation
                 let all_objects = canvas.getObjects()
                 let all_objects_grouped = new fabric.Group(all_objects)
@@ -482,8 +525,6 @@
                     easing: fabric.util.ease.easeOutExpo
                 });
 
-            
-                
                 canvas.renderAll()
 
 
@@ -540,8 +581,8 @@
                         let half_diag = 0.5 * (danger_icon.width**2 + danger_icon.height**2)**0.5  
                         let required_half_diag = obj_briefcase_ratio * briefcase_diag  
                         let obj_scale = required_half_diag / half_diag 
-                        danger_icon.scale(obj_scale*3)
-                        danger_icon.set({left:canvas_rect().width/2, top: canvas_rect().height*0.25}),
+                        danger_icon.scale(obj_scale*2.25)
+                        danger_icon.set({left:canvas_rect().width*0.75, top: canvas_rect().height*0.25, angle:10}),
                         danger_icon.forEachObject(obj_el => {obj_el.fill= 'red'})
                         canvas.add(danger_icon)
 
@@ -559,13 +600,13 @@
 
                 for (const button of buttonGroupElement.children) {
                         button.addEventListener("click", () =>{
-                            // add danger icon
+                            // add safe icon
                             let half_diag = 0.5 * (save_icon.width**2 + save_icon.height**2)**0.5  
                             let required_half_diag = obj_briefcase_ratio * briefcase_diag  
                             let obj_scale = required_half_diag / half_diag 
-                            save_icon.scale(obj_scale*3)
-                            save_icon.set({left:canvas_rect().width/2, top: canvas_rect().height*0.25}),
-                            save_icon.forEachObject(obj_el => {obj_el.fill= 'green'})
+                            save_icon.scale(obj_scale*2.25)
+                            save_icon.set({left:canvas_rect().width*0.2, top: canvas_rect().height*0.25, angle:-10}),
+                            save_icon.forEachObject(obj_el => {obj_el.fill= '#2d00c8'})
                             canvas.add(save_icon)
                             remove_briefcase_animation(save_icon)
                         }  );
@@ -598,7 +639,8 @@
 
     const intro = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: `<h1>Welkom! - ${exp_version}</h1>`,
+        stimulus: `<h1>Welkom! - ${exp_version}</h1>` +
+        "<p>Je  verboden voorwerpen in de koffers!</p>",
         choices: ["Begin!"],
         data:{
             label:'intro',
