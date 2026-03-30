@@ -34,6 +34,13 @@ html, body {
   color: white;
 }
 
+.jspsych-btn:disabled {
+  background-color: #2b00c800;
+  color: #aaaaaa00;
+  border-color: #d13d3d00;
+  cursor:auto;
+}
+
 
 .jspsych-slider::-webkit-slider-thumb {
     border: 10px solid #2b00c8;

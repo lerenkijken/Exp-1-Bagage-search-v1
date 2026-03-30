@@ -95,6 +95,11 @@ var jsPsychCanvasButtonResponse = (function (jspsych) {
         type: jspsych.ParameterType.BOOL,
         default: true
       },
+      /** How long the button will delay enabling in milliseconds. */
+      enable_button_after: {
+        type: jspsych.ParameterType.INT,
+        default: 0
+      },
         /** Delay before trial ends after response. Not this delay does not afect the rt of thr trial.
        */
       post_response_delay: {
@@ -214,6 +219,23 @@ var jsPsychCanvasButtonResponse = (function (jspsych) {
           stimulusElement.style.visibility = "hidden";
         }, trial.stimulus_duration);
       }
+
+
+      if (trial.enable_button_after > 0) {
+        var btns = document.querySelectorAll("#jspsych-canvas-button-response-btngroup button");
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].setAttribute("disabled", "disabled");
+        }
+        this.jsPsych.pluginAPI.setTimeout(() => {
+          var btns2 = document.querySelectorAll("#jspsych-canvas-button-response-btngroup button");
+          for (var i2 = 0; i2 < btns2.length; i2++) {
+            btns2[i2].removeAttribute("disabled");
+          }
+        }, trial.enable_button_after);
+      }
+
+
+
       if (trial.trial_duration !== null) {
         this.jsPsych.pluginAPI.setTimeout(() => {
           end_trial();
