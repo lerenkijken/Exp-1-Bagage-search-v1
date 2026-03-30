@@ -80,7 +80,7 @@
 
 
 
-    let exp_version = '0.1.0'
+    let exp_version = '0.1.1'
     const exp_id = 'exp_1_v'+exp_version
     
     const url_vars = jsPsych.data.urlVariables()
@@ -103,8 +103,8 @@
 
     // exp / trial parameters
      // 
-    const n_repeats_of_full_factorial_design = 1
-    const n_search_trials = n_repeats_of_full_factorial_design * 4 // 32 total: 4 * 8 unique conditions in the factorial design (4 validity X 2 presence)
+    const n_repeats_of_full_factorial_design = 4
+    const n_search_trials = n_repeats_of_full_factorial_design * 8 //* 8 unique conditions in the factorial design (4 validity X 2 presence)
     const fabric_canvas_bg_col = 'white' 
     const briefcase_color = theme_pink // ['#ffcc00', '#ff6699', '#fe9900'][Math.floor(Math.random()*3)]
     const obj_briefcase_ratio = 0.07 // makes objects ~20 times smaller than canvas
