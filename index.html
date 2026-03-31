@@ -80,13 +80,15 @@
 
 
 
-    let exp_version = '0.1.1'
+    let exp_version = '0.1.2'
     const exp_id = 'exp_1_v'+exp_version
     
     const url_vars = jsPsych.data.urlVariables()
-    const exp_start_datetime = Date.now()
+    
     url_vars['exp_version'] = exp_version
     url_vars['exp_id'] = exp_id
+
+    const exp_start_datetime = Date.now()
     url_vars['exp_start_datetime'] = Date(exp_start_datetime)
     url_vars['exp_start_UTCms'] = exp_start_datetime
 
