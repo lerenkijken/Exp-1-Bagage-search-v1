@@ -730,9 +730,16 @@
                                 save_icon.scale(obj_scale*2.25)
                                 save_icon.set({left:canvas_rect().width*0.2, top: canvas_rect().height*0.25, angle:-10}),
                                 save_icon.forEachObject(obj_el => {obj_el.strokeWidth=briefcase_diag*0.007; obj_el.stroke=theme_blue;obj_el.fill=theme_blue})
-                                // canvas.add(save_icon) // do not show save icon!
-                                remove_briefcase_animation(save_icon)
                                 
+                                // give feedback on report correctness
+                                if (n_targets == 0){
+                                  canvas.add(save_icon) 
+                                  remove_briefcase_animation(save_icon)
+                                } else {
+                                  canvas.add(danger_icon) 
+                                  remove_briefcase_animation(danger_icon)
+  
+                                }
                                 
                             }  );
                     } 
