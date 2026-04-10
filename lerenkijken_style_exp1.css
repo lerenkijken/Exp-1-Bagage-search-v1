@@ -7,18 +7,23 @@ html, body {
 
 .jspsych-display-element {
   font-size: 35px;
-  color: black;
-  background-color: white;
+  background-color: black;
+  
+ color: white;
 }
 
 .jspsych-content {
   font-size: 35px;
-  color: black;
-  background-color: white;
+  background-color: black;
+  color: white;
+  position: absolute;
+
+  left: 50%; 
+  transform: translateX(-50%);
 }
 
 .jspsych-btn {
-    font-size: 30px;
+    font-size: 40px;
     border: 10px solid transparent;
     border-radius: 16px;
     color: white;
