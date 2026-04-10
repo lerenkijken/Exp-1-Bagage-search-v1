@@ -58,7 +58,7 @@
         message_progress_bar: 'Progress',
         on_finish: function() {
            //jsPsych.data.displayData('json');
-           window.location.href = 'https://lerenkijken.nl/';
+           // window.location.href = 'https://lerenkijken.nl/';
         }
 
     });
@@ -67,7 +67,7 @@
 
 
 
-    let exp_version = '0_1_3'
+    let exp_version = '0_1_5'
     const exp_id = 'exp_1_v'+exp_version
     
     const url_vars = jsPsych.data.urlVariables()
@@ -697,8 +697,8 @@
                             let half_diag = 0.5 * (danger_icon.width**2 + danger_icon.height**2)**0.5  
                             let required_half_diag = obj_briefcase_ratio * briefcase_diag  
                             let obj_scale = required_half_diag / half_diag 
-                            danger_icon.scale(obj_scale*2.25)
-                            danger_icon.set({left:canvas_rect().width*0.8, top: canvas_rect().height*0.25, angle:10}),
+                            danger_icon.scale(obj_scale*1.75)
+                            danger_icon.set({left:canvas_rect().width*0.7, top: canvas_rect().height*0.25, angle:10}),
                             danger_icon.forEachObject(obj_el => {obj_el.strokeWidth=briefcase_diag*0.003; obj_el.stroke= 'red';obj_el.fill= 'red'})
                             //canvas.add(danger_icon)
 
@@ -727,9 +727,9 @@
                                 let half_diag = 0.5 * (save_icon.width**2 + save_icon.height**2)**0.5  
                                 let required_half_diag = obj_briefcase_ratio * briefcase_diag  
                                 let obj_scale = required_half_diag / half_diag 
-                                save_icon.scale(obj_scale*2.25)
-                                save_icon.set({left:canvas_rect().width*0.2, top: canvas_rect().height*0.25, angle:-10}),
-                                save_icon.forEachObject(obj_el => {obj_el.strokeWidth=briefcase_diag*0.007; obj_el.stroke=theme_blue;obj_el.fill=theme_blue})
+                                save_icon.scale(obj_scale*1.75)
+                                save_icon.set({left:canvas_rect().width*0.3, top: canvas_rect().height*0.25, angle:-10}),
+                                save_icon.forEachObject(obj_el => {obj_el.strokeWidth=briefcase_diag*0.007; obj_el.stroke='lime';obj_el.fill='lime'})
                                 
                                 // give feedback on report correctness
                                 if (n_targets == 0){
