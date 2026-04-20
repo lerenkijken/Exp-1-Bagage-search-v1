@@ -124,7 +124,7 @@
         let device_info = get_device_info()
         let canvas_dim = Math.min( device_info.width, device_info.height)
 
-        return [canvas_dim, canvas_dim] 
+        return [device_info.width, device_info.height] 
     }
 
     function get_canvas_size() {
@@ -534,15 +534,15 @@
                 
                 location_cue_obj.set({
                     left:cue_x, top:cue_y,                        
-                    strokeWidth: briefcase_diag * 0.06, 
+                    strokeWidth: briefcase_diag * 0.03, 
                     rx: 20, ry: 20, // round the corners
-                    stroke: theme_yellow, 
-                    fill: 'rgba(0,0,0,0)' 
+                    stroke: theme_yellow,
+                    fill: theme_yellow+'50' //'rgba(0,0,0,0)' 
                 });
-                location_cue_obj.opacity = 0.7
+                
                 // leave space betwee the cue and edge
-                location_cue_obj.width = bcr.width * 0.5  // - location_cue_obj.strokeWidth*2
-                location_cue_obj.height = bcr.height* 0.5 //  - location_cue_obj.strokeWidth*2                    
+                location_cue_obj.width = bcr.width * 0.6  // - location_cue_obj.strokeWidth*2
+                location_cue_obj.height = bcr.height* 0.6 //  - location_cue_obj.strokeWidth*2                    
                 
                 
                 
@@ -829,16 +829,38 @@
     };
 
 
-    const pre_practice_trial = {
+    const example_of_weapons = {
         type: jsPsychHtmlButtonResponse,
-        stimulus:()=> {
-            console.log( between_pp_validity[0])
-            let txt = between_pp_validity[0]=='no_cue' ? "" : `Vóór elke koffer geeft een collega (met een mini koffertje) aan waar je extra goed moet kijken.<br>`
-            return "<h2>Eerst een keertje oefenen.</h2><p>"+
-         txt +
-        "Als je ergens een <strong>mes of pistool</strong> ziet, wijs je die meteen aan!<br>"+        
-        "Als je <strong>GEEN</strong> mes of pistool ziet druk dan op 'Veilig'!</p>"},
+        stimulus: `<p>Hier zie je een voorbeeld van een <strong>mes en pistool</strong>`+
+            `<img src='gun_knife_example.png' width='250'></img>`+
+            "<p>Als je er één in een koffer ziet, tik/klik er dan meteen op!"+        
+            "Als je <strong>GEEN</strong> mes of pistool ziet geef je aan dat de koffer 'Veilig' is!</p>",
+        choices:() =>  between_pp_validity[0]=='no_cue' ? ["Oefen!"] : ['Verder'] ,
+    }
+
+    // const pre_cue_instruction = {
+    //     type: jsPsychImageButtonResponse,
+    //     stimulus: 'pre_cue_example.png',
+    //     prompt: `<p>Een collega heeft elke koffer vlug bekeken, en in geel 'verdachte plekken' gemarkeerd.`+
+    //         `<br>Vóór elke koffer zie je kort een mini koffertje zoals hierboven, met de tip van je collega!.`,
+    //     choices: ["Oefen!"],
+    // }
+
+    const pre_cue_instruction = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: `<p>Een collega heeft elke koffer al vlug bekeken, en in geel 'verdachte plekken' gemarkeerd.</p>`+
+            `<img src='pre_cue_example.png' width='130'></img>`+
+            `<p>Vóór elke koffer zie je kort een mini koffertje zoals hierboven, met de tip van je collega!.`,
         choices: ["Oefen!"],
+    }
+
+    const pre_cue_instruction_if_node = {
+        timeline: [pre_cue_instruction],
+        conditional_function: () =>  between_pp_validity[0] == 'valid'
+    }
+
+    const pre_practice_trial = {
+        timeline: [example_of_weapons, pre_cue_instruction_if_node]
     }
 
     const post_practice_trial = {
@@ -954,6 +976,12 @@
         },
     }
 
+    const preload ={
+    type: jsPsychPreload,
+    images: ['gun_knife_example.png', 'pre_cue_example.png']
+}
+
+
 
     // make timeline
 
@@ -976,6 +1004,9 @@
 
     // if no cues in the experiment, also no cues in practice, otherwise  valid
     let practice_validity = between_pp_validity[0] == 'no_cue' ? 'no_cue' : 'valid'     
+
+        // Make timeline!
+
     let timeline = [user_info_trial, intro, pre_practice_trial, make_trial(1, practice_validity, {label:'practice_search_trial'}), post_practice_trial, pre_experimental_trials]
 
     for (let i=0; i < n_search_trials ; i++ ) {
@@ -1022,6 +1053,11 @@
 
     function get_dist(x1, y1, x2, y2) {
         return ( (x2-x1)**2 + (y2-y1)**2 )**0.5
+    }
+    
+    function clamp(val, min, max) {
+        if (min > max ) {throw new Error("Min value is larger than max value.")}
+        return Math.min( max,  Math.max( val, min) )
     }
     
   </script>

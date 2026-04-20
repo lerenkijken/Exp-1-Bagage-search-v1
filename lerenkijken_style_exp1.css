@@ -13,7 +13,7 @@ html, body {
 }
 
 .jspsych-content {
-  font-size: 35px;
+  /* font-size: 35px; */
   background-color: black;
   color: white;
   position: absolute;
@@ -23,7 +23,7 @@ html, body {
 }
 
 .jspsych-btn {
-    font-size: 40px;
+    font-size: 35px;
     border: 10px solid transparent;
     border-radius: 16px;
     color: white;
@@ -119,6 +119,7 @@ html, body {
 
 p {
   font-family: Inter; /* use font */
+   /* font-size: 25px; */
     -webkit-user-select: none; /* Safari */
             user-select: none; 
 }
