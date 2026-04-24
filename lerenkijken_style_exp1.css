@@ -6,14 +6,13 @@ html, body {
 }
 
 .jspsych-display-element {
-  font-size: 35px;
+  font-size: 25px;
   background-color: black;
   
  color: white;
 }
 
 .jspsych-content {
-  /* font-size: 35px; */
   background-color: black;
   color: white;
   position: absolute;
@@ -23,7 +22,7 @@ html, body {
 }
 
 .jspsych-btn {
-    font-size: 35px;
+    font-size: 30px;
     border: 10px solid transparent;
     border-radius: 16px;
     color: white;

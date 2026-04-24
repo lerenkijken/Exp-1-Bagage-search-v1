@@ -30,7 +30,7 @@
 
 
   </head>
-  <body></body>
+  <body oncontextmenu='return false;'></body>
   <script>
 
 /*
@@ -67,7 +67,7 @@
 
 
 
-    let exp_version = '0_1_7'
+    let exp_version = '0_1_8test'
     const exp_id = 'exp_1_v'+exp_version
     
     const url_vars = jsPsych.data.urlVariables()
@@ -81,7 +81,8 @@
 
     const user_info_trial = {
         type: jsPsychBrowserCheck,
-        data: url_vars
+        data: url_vars,
+        on_finish: resize_contents,
     };
 
     // theme colors
@@ -93,8 +94,8 @@
 
     // exp / trial parameters
      // 
-    const n_repeats_of_full_factorial_design = 3
-    const n_search_trials = n_repeats_of_full_factorial_design * 8 //* 8 unique conditions in the factorial design (4 validity X 2 presence)
+    const n_repeats_of_full_factorial_design = 4
+    const n_search_trials = 3// n_repeats_of_full_factorial_design * 8 //* 8 unique conditions in the factorial design (4 validity X 2 presence)
 
     const entry_exit_duration = 500
     const pre_cue_duration = 1000
@@ -125,6 +126,20 @@
         let canvas_dim = Math.min( device_info.width, device_info.height)
 
         return [device_info.width, device_info.height] 
+    }
+
+
+
+    // set content for mobile vs comp
+
+    function resize_contents () {
+    let jsPsych_contents = document.getElementsByClassName('jspsych-content');
+    if (window.innerHeight > 1.25 * window.innerWidth)
+    for (let i =0; i< jsPsych_contents.length; i++){
+        jsPsych_contents[i].style.width = '90%'
+        jsPsych_contents[i].style.fontSize = '35px'
+
+    }
     }
 
     function get_canvas_size() {
@@ -831,8 +846,8 @@
 
     const example_of_weapons = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: `<p>Hier zie je een voorbeeld van een <strong>mes en pistool</strong>`+
-            `<img src='gun_knife_example.png' width='250'></img>`+
+        stimulus: `<p>Hier zie je een voorbeeld van een <strong>mes en pistool</strong></p>`+
+            `<img src='gun_knife_example.png' width='400'></img>`+
             "<p>Als je er één in een koffer ziet, tik/klik er dan meteen op!"+        
             "Als je <strong>GEEN</strong> mes of pistool ziet geef je aan dat de koffer 'Veilig' is!</p>",
         choices:() =>  between_pp_validity[0]=='no_cue' ? ["Oefen!"] : ['Verder'] ,
@@ -863,13 +878,33 @@
         timeline: [example_of_weapons, pre_cue_instruction_if_node]
     }
 
+
+    // make this loop function work!
+    let redo_practice;
     const post_practice_trial = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: "<p>Er zat een mes of pistool in de oefen-koffer,<br>hopelijk had je dat gezien!</p>",
+        stimulus: () => {
+            let got_target = jsPsych.data.get().last().values()[0].response_label == 'got_target' 
+
+            if (got_target) {
+                redo_practice = false
+                return "<p>Goed gevonden!</p><p>Jij snapt nu hoe het werkt!</p>"
+
+            } else {
+                redo_practice = true
+                return "<p>Er zat een wapen in de vorige koffer!</p><p>Probeer het nog eens!</p>"
+            }
+            
+
+        },
         choices: ["Verder!"],
     }
 
-
+    let make_practice_procedure = () => { return {
+        timeline:  [make_trial(1, practice_validity, {label:'practice_search_trial'}), post_practice_trial],
+        loop_function: () => redo_practice
+        }
+    }
 
     const pre_experimental_trials = {
         type: jsPsychHtmlButtonResponse,
@@ -1007,7 +1042,7 @@
 
         // Make timeline!
 
-    let timeline = [user_info_trial, intro, pre_practice_trial, make_trial(1, practice_validity, {label:'practice_search_trial'}), post_practice_trial, pre_experimental_trials]
+    let timeline = [user_info_trial, intro, pre_practice_trial, make_practice_procedure(), pre_experimental_trials]
 
     for (let i=0; i < n_search_trials ; i++ ) {
         timeline.push(blank_trial, make_trial( full_design[i].n_targets , full_design[i].cue_validity) ) // full_design[i].n_targets
@@ -1025,7 +1060,7 @@
 
 
     
-    
+   
     jsPsych.run(timeline);   
 
 
