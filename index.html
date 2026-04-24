@@ -67,7 +67,7 @@
 
 
 
-    let exp_version = '0_1_9test'
+    let exp_version = '0_1_10test'
     const exp_id = 'exp_1_v'+exp_version
     
     const url_vars = jsPsych.data.urlVariables()
@@ -1011,10 +1011,10 @@
         },
     }
 
-    const preload ={
-    type: jsPsychPreload,
-    images: ['gun_knife_example.png', 'pre_cue_example.png']
-}
+    const preload = {
+        type: jsPsychPreload,
+        images: ['gun_knife_example.png', 'pre_cue_example.png']
+    }
 
 
 
@@ -1054,7 +1054,7 @@
 
     }
     
-    // timeline.push(save_data)
+    timeline.push(save_data)
     timeline.push(debrief)
 
 
