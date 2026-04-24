@@ -67,7 +67,7 @@
 
 
 
-    let exp_version = '0_1_12test'
+    let exp_version = '0_2_0'
     const exp_id = 'exp_1_v'+exp_version
     
     const url_vars = jsPsych.data.urlVariables()
@@ -95,7 +95,7 @@
     // exp / trial parameters
      // 
     const n_repeats_of_full_factorial_design = 4
-    const n_search_trials = 1// n_repeats_of_full_factorial_design * 8 //* 8 unique conditions in the factorial design (4 validity X 2 presence)
+    const n_search_trials = n_repeats_of_full_factorial_design * 8 //* 8 unique conditions in the factorial design (4 validity X 2 presence)
 
     const entry_exit_duration = 500
     const pre_cue_duration = 1000
@@ -846,9 +846,9 @@
 
     const example_of_weapons = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: `<p>Hier zie je een voorbeeld van een <strong>mes en pistool</strong></p>`+
+        stimulus: `<p>Hier zie je een voorbeeld van een<br><strong>mes en pistool</strong></p>`+
             `<img src='gun_knife_example.png' width='400'></img>`+
-            "<p>Als je er één in een koffer ziet, tik/klik er dan meteen op!"+        
+            "<p>Als je er één in een koffer ziet, tik/klik er dan meteen op! "+        
             "Als je <strong>GEEN</strong> mes of pistool ziet geef je aan dat de koffer 'Veilig' is!</p>",
         choices:() =>  between_pp_validity[0]=='no_cue' ? ["Oefen!"] : ['Verder'] ,
     }
@@ -892,7 +892,7 @@
 
             } else {
                 redo_practice = true
-                return "<p>Er zat een wapen in de vorige koffer!</p><p>Probeer het nog eens!</p>"
+                return "<p>Er zat een wapen in de vorige koffer!<br>Die heb je niet gevonden.</p><p>Probeer het nog eens!</p>"
             }
             
 
@@ -942,7 +942,7 @@
                 window.location.reload();
             }
             if (resp_idx == 1){
-                window.location.href = 'https://lerenkijken.nl/#experimenten';
+                window.location.href = 'https://lerenkijken.nl/#experimenten'; // fix url that stays on exp. maybe iframe issue??
             }
         },
     };
