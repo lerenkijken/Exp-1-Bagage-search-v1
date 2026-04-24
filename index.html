@@ -67,7 +67,7 @@
 
 
 
-    let exp_version = '0_1_11test'
+    let exp_version = '0_1_12test'
     const exp_id = 'exp_1_v'+exp_version
     
     const url_vars = jsPsych.data.urlVariables()
@@ -978,14 +978,17 @@
                         done()
                     } else{
                         console.log(xhr.status);
+                        console.log('not saved, xhr.status was not 200');
                         done()
                     }
                 }).fail(function(){
                     console.log(xhr.status);
+                    console.log('not saved, fail function ran');
                     done()
                 });
             } catch (error){
                 console.log(error);
+                console.log('not saved, error caught');
                 done()
             }
         },
