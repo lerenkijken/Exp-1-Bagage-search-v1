@@ -10,12 +10,13 @@ html, body {
   background-color: black;
   
  color: white;
+ 
 }
 
 .jspsych-content {
   background-color: black;
   color: white;
-  position: absolute;
+  position: fixed;
   
   left: 50%; 
   transform: translateX(-50%);

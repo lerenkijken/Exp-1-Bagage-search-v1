@@ -133,13 +133,14 @@
     // set content for mobile vs comp
 
     function resize_contents () {
-    let jsPsych_contents = document.getElementsByClassName('jspsych-content');
-    if (window.innerHeight > 1.25 * window.innerWidth)
-    for (let i =0; i< jsPsych_contents.length; i++){
-        jsPsych_contents[i].style.width = '90%'
-        jsPsych_contents[i].style.fontSize = '35px'
+        let jsPsych_contents = document.getElementsByClassName('jspsych-content');
+        if (window.innerHeight > 1.25 * window.innerWidth) {
+            for (let i =0; i< jsPsych_contents.length; i++) {
+                jsPsych_contents[i].style.width = '90%'
+                jsPsych_contents[i].style.fontSize = '35px'
 
-    }
+            }
+        }
     }
 
     function get_canvas_size() {
