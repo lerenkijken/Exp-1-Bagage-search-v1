@@ -67,8 +67,9 @@
 
 
 
-    let exp_version = '0_2_0'
+    let exp_version = '0_3_0'
     const exp_id = 'exp_1_v'+exp_version
+    console.log("Exp id: ", exp_id)
     
     const url_vars = jsPsych.data.urlVariables()
     
@@ -137,7 +138,7 @@
         if (window.innerHeight > 1.25 * window.innerWidth) {
             for (let i =0; i< jsPsych_contents.length; i++) {
                 jsPsych_contents[i].style.width = '90%'
-                jsPsych_contents[i].style.fontSize = '35px'
+                jsPsych_contents[i].style.fontSize = 'x-large'
 
             }
         }
@@ -836,7 +837,7 @@
 
     const intro = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: `<h1>Welkom! - ${exp_version}</h1>` +
+        stimulus: `<h1>Welkom!</h1>` +
         "<p>Je gaat zometeen als beveliger verboden voorwerpen in koffers zoeken!</p>",
         choices: ["Verder!"],
         data:{
@@ -866,7 +867,7 @@
         type: jsPsychHtmlButtonResponse,
         stimulus: `<p>Een collega heeft elke koffer al vlug bekeken, en in geel 'verdachte plekken' gemarkeerd.</p>`+
             `<img src='pre_cue_example.png' width='130'></img>`+
-            `<p>Vóór elke koffer zie je kort een mini koffertje zoals hierboven, met de tip van je collega!.`,
+            `<p>Vóór elke koffer zie je kort een mini koffertje zoals hierboven, met de tip van je collega.`,
         choices: ["Oefen!"],
     }
 
@@ -940,10 +941,10 @@
         on_finish: function(){
             let resp_idx = jsPsych.data.get().last().select('response').values[0]
             if (resp_idx == 0){
-                window.location.reload();
+                window.top.location.href = 'https://lerenkijken.nl/experiment/doorzoek-de-bagage'
             }
             if (resp_idx == 1){
-                window.location.href = 'https://lerenkijken.nl/#experimenten'; // fix url that stays on exp. maybe iframe issue??
+                window.top.location.href = 'https://lerenkijken.nl/#experimenten'; // fix url that stays on exp. maybe iframe issue??
             }
         },
     };
