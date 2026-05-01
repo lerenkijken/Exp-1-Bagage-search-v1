@@ -67,7 +67,7 @@
 
 
 
-    let exp_version = '0_3_0'
+    let exp_version = '1_0_0'
     const exp_id = 'exp_1_v'+exp_version
     console.log("Exp id: ", exp_id)
     
@@ -83,7 +83,7 @@
     const user_info_trial = {
         type: jsPsychBrowserCheck,
         data: url_vars,
-        on_finish: resize_contents,
+        // on_finish: resize_contents,
     };
 
     // theme colors
@@ -285,6 +285,7 @@
     };
 
 
+
     let blank_trial = {
                 type: jsPsychCanvasButtonResponse,
                 canvas_size: get_canvas_size,
@@ -294,7 +295,7 @@
                 },
                 choices: () => ['Veilig' ],
                 enable_button_after: blank_trial_duration+100,
-                response_ends_trial: false
+                response_ends_trial: false,
     }
 
 
@@ -306,7 +307,7 @@
                     let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:fabric_canvas_bg_col, selection:false, centeredScaling:true});
                 },
                 choices: ['Veilig' ],
-                response_ends_trial: false
+                response_ends_trial: false,
     }
 
     function make_trial(n_targets, cue_validity = 'no_cue', extra_data={}) {
@@ -848,26 +849,25 @@
 
     const example_of_weapons = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: `<p>Hier zie je een voorbeeld van een<br><strong>mes en pistool</strong></p>`+
-            `<img src='gun_knife_example.png' width='400'></img>`+
+        stimulus: ()=> `<p>Hier zie je een voorbeeld van een<br><strong>mes en pistool</strong></p>`+
+            `<p><img src='gun_knife_example.png' maxWidth='400px' width='90%'></img></p>`+
             "<p>Als je er één in een koffer ziet, tik/klik er dan meteen op! "+        
             "Als je <strong>GEEN</strong> mes of pistool ziet geef je aan dat de koffer 'Veilig' is!</p>",
         choices:() =>  between_pp_validity[0]=='no_cue' ? ["Oefen!"] : ['Verder'] ,
     }
 
-    // const pre_cue_instruction = {
-    //     type: jsPsychImageButtonResponse,
-    //     stimulus: 'pre_cue_example.png',
-    //     prompt: `<p>Een collega heeft elke koffer vlug bekeken, en in geel 'verdachte plekken' gemarkeerd.`+
-    //         `<br>Vóór elke koffer zie je kort een mini koffertje zoals hierboven, met de tip van je collega!.`,
-    //     choices: ["Oefen!"],
-    // }
 
+   
+    
     const pre_cue_instruction = {
         type: jsPsychHtmlButtonResponse,
-        stimulus: `<p>Een collega heeft elke koffer al vlug bekeken, en in geel 'verdachte plekken' gemarkeerd.</p>`+
-            `<img src='pre_cue_example.png' width='130'></img>`+
-            `<p>Vóór elke koffer zie je kort een mini koffertje zoals hierboven, met de tip van je collega.`,
+        stimulus: () => {
+           let pre_cue_example_rotation = get_device_info().mobile ?  `transform:rotate(90deg); margin-top:0.8em` : ''
+            
+           return `<p>Een collega heeft elke koffer al vlug bekeken, en in geel 'verdachte plekken' gemarkeerd.</p>`+
+            `<p><img src='pre_cue_example.png' style="max-width:130px; width:50%; ${pre_cue_example_rotation}"></img></p>`+
+            `<p>Vóór elke koffer zie je kort een mini koffertje zoals hierboven, met de tip van je collega.`
+        } ,
         choices: ["Oefen!"],
     }
 
