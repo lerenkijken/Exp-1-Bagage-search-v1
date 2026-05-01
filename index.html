@@ -293,7 +293,7 @@
                 stimulus: function (c) {
                     let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:fabric_canvas_bg_col, selection:false, centeredScaling:true});
                 },
-                choices: () => ['Veilig' ],
+                choices: () => [ '<h2>&nbsp;&nbsp;Veilig&nbsp;&nbsp;</h2>' ],
                 enable_button_after: blank_trial_duration+100,
                 response_ends_trial: false,
     }
@@ -306,7 +306,7 @@
                 stimulus: function (c) {
                     let canvas = new fabric.Canvas("jspsych-canvas-stimulus", {backgroundColor:fabric_canvas_bg_col, selection:false, centeredScaling:true});
                 },
-                choices: ['Veilig' ],
+                choices: ['<h2>&nbsp;&nbsp;Veilig&nbsp;&nbsp;</h2>'],
                 response_ends_trial: false,
     }
 
@@ -331,7 +331,7 @@
         let fabric_trial = {
             type: jsPsychCanvasButtonResponse,
             canvas_size: get_canvas_size,
-            choices: ['Veilig'],
+            choices: ['<h2>&nbsp;&nbsp;Veilig&nbsp;&nbsp;</h2>'],
             post_response_delay: entry_exit_duration,
             enable_button_after: pre_cue_duration,
             stimulus: function (c, buttonGroupElement) {
