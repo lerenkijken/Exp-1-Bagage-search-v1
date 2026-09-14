@@ -22,6 +22,8 @@ html, body {
   transform: translateX(-50%);
 }
 
+
+
 .jspsych-btn {
     font-size: large; 
     padding: 0.4em 0.9em;
@@ -83,7 +85,8 @@ html, body {
 
 #jspsych-progressbar-container span {
     /* font-size: 20px; */
-    padding-right: 25px;
+    padding: 0px;
+    margin: 0px;
 }
 
 #jspsych-progressbar-outer {
